@@ -1,7 +1,7 @@
-site_name: Confir
+site_name: Configr
 site_url: https://configr.wiektec.com/
-repo_url: https://github.com/cwieken/confir
-repo_name: cwieken/confir
+repo_url: https://github.com/cwieken/configr
+repo_name: cwieken/configr
 site_description: A flexible, type-safe configuration management library for Python
 
 theme:
@@ -30,8 +30,8 @@ markdown_extensions:
   - md_in_html
   - footnotes
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 nav:
   - Home: index.md
@@ -45,6 +45,7 @@ nav:
     - ConfigBase: api/config-base.md
     - config_class: api/config-class.md
     - Loaders: api/loaders.md
+    - FieldTypeChecker: api/field-type-checker.md
     - Exceptions: api/exceptions.md
     - Utilities: api/utils.md
   - Examples: examples.md

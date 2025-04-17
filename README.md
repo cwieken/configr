@@ -1,8 +1,8 @@
-# Confir
+# Configr
 
 A flexible, type-safe configuration management library for Python.
 
-Confir simplifies configuration management by leveraging Python's dataclasses and type hints to provide a robust, type-safe approach to application configuration.
+Configr simplifies configuration management by leveraging Python's dataclasses and type hints to provide a robust, type-safe approach to application configuration.
 
 ## Features
 
@@ -15,10 +15,10 @@ Confir simplifies configuration management by leveraging Python's dataclasses an
 ## Installation
 
 ```bash
-pip install confir
+pip install configr
 
 # For YAML support
-pip install confir[yaml]
+pip install configr[yaml]
 ```
 
 ## Quick Start
@@ -26,7 +26,7 @@ pip install confir[yaml]
 Define your configuration class:
 
 ```python
-from confir import config_class, ConfigBase
+from configr import config_class, ConfigBase
 
 @config_class(file_name="database.json")
 class DatabaseConfig:
@@ -56,11 +56,11 @@ Create a configuration file in `_config/database.json`:
 
 ## Documentation
 
-For complete documentation, visit [our documentation site](https://yourusername.github.io/confir/).
+For complete documentation, visit [our documentation site](https://yourusername.github.io/configr/).
 
-- [Getting Started](https://yourusername.github.io/confir/getting-started/)
-- [API Reference](https://yourusername.github.io/confir/api/config-base/)
-- [Examples](https://yourusername.github.io/confir/examples/)
+- [Getting Started](https://yourusername.github.io/configr/getting-started/)
+- [API Reference](https://yourusername.github.io/configr/api/config-base/)
+- [Examples](https://yourusername.github.io/configr/examples/)
 
 ## Contributing
 
