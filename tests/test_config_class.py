@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 
 from src.config_class import config_class
 from src.base import ConfigBase
+from src.exceptions import ConfigFileNotFoundError
 
 
 @pytest.fixture
@@ -28,9 +29,9 @@ def test_config_class_basic_usage(mock_loaders):
     # Check that it's a dataclass
     assert dataclasses.is_dataclass(TestConfig)
 
-    # Check default file name (snake case of class name + .json)
+    # Check default file name (snake case of class name)
     assert hasattr(TestConfig, '_config_file_name')
-    assert TestConfig._config_file_name == 'test_config.json'
+    assert TestConfig._config_file_name == 'test_config'
 
 
 def test_config_class_with_file_name(mock_loaders):
@@ -63,8 +64,8 @@ def test_config_class_with_complex_name(mock_loaders):
         url: str
         timeout: int
 
-    # Should convert APIServiceConfig to api_service_config.json
-    assert APIServiceConfig._config_file_name == "api_service_config.json"
+    # Should convert APIServiceConfig to api_service_config
+    assert APIServiceConfig._config_file_name == "api_service_config"
 
 
 def test_config_class_without_extension(mock_loaders):
@@ -75,8 +76,8 @@ def test_config_class_without_extension(mock_loaders):
         name: str
         value: int
 
-    # Should add default extension (.json)
-    assert TestConfig._config_file_name == "config_without_extension.json"
+    # Should add default extension
+    assert TestConfig._config_file_name == "config_without_extension"
 
 
 def test_config_class_with_unsupported_extension(mock_loaders):
@@ -88,34 +89,6 @@ def test_config_class_with_unsupported_extension(mock_loaders):
         value: int
 
     # Should keep the extension but it will cause an error when loading
-    assert TestConfig._config_file_name == "config.txt.json"
-
-
-def test_config_class_with_different_loaders(mock_loaders):
-    """Test config_class with different available loaders"""
-    # Change the mock to return different loaders
-    mock_loaders.return_value = {
-        '.toml': 'TOMLConfigLoader',
-        '.ini': 'INIConfigLoader'
-    }
-
-    @config_class
-    class TestConfig:
-        name: str
-        value: int
-
-    # Should use the first available loader extension
-    assert TestConfig._config_file_name == "test_config.toml"
-
-
-def test_config_class_with_empty_loaders(mock_loaders):
-    """Test config_class with no available loaders"""
-    # Change the mock to return empty loaders
-    mock_loaders.return_value = {}
-
-    # Should raise an error
-    with pytest.raises(IndexError):
-        @config_class
-        class TestConfig:
-            name: str
-            value: int
+    assert TestConfig._config_file_name == "config.txt"
+    with pytest.raises(ConfigFileNotFoundError):
+        ConfigBase.load(TestConfig)

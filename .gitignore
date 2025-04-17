@@ -4,6 +4,21 @@ docker-compose.yaml
 Dockerfile
 src/config/*.json
 !src/config/*.json.sample
+.aiignore
+
+# macOS specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template

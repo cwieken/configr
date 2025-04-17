@@ -1,4 +1,5 @@
 import dataclasses
+from pathlib import Path
 
 from .base import ConfigBase
 from .utils import to_snake_case
@@ -15,8 +16,6 @@ def config_class(cls=None, *, file_name: str = None):
             host: str
             port: int = 5432
     """
-    loaders = ConfigBase.get_available_loaders()
-    supported_file_endings = list(loaders.keys())
 
     def wrapper(cls):
         # Mark as dataclass if not already, that way @dataclass does not need to be used
@@ -30,10 +29,6 @@ def config_class(cls=None, *, file_name: str = None):
         elif not hasattr(cls, '_config_file_name'):
             # Default to class name in snake_case
             cls._config_file_name = to_snake_case(cls.__name__)
-
-        if not any(cls._config_file_name.endswith(ext) for ext in supported_file_endings):
-            # Default to first loader (should be json)
-            cls._config_file_name += supported_file_endings[0]
 
         return cls
 

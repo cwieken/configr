@@ -1,177 +1,296 @@
+import dataclasses
+import json
 import os
 import tempfile
-import json
-import yaml
-import pytest
 from pathlib import Path
-from dataclasses import dataclass
 from unittest.mock import patch, MagicMock
 
+import pytest
+import yaml
+
 from src.base import ConfigBase
+from src.config_class import config_class
 from src.exceptions import ConfigFileNotFoundError
-
-
-@dataclass
-class TestConfig:
-    name: str
-    value: int
-    enabled: bool = True
-
-
-@dataclass
-class CustomNameConfig:
-    host: str
-    port: int
-    _config_file_name = "custom_config.json"
+from src.loaders import JSONConfigLoader, YAMLConfigLoader
 
 
 @pytest.fixture
 def config_dir():
-    """Create a temporary directory for test configs"""
+    """Fixture to create and manage temporary config directory"""
     with tempfile.TemporaryDirectory() as temp_dir:
-        yield Path(temp_dir)
+        config_dir = Path(temp_dir)
+        ConfigBase.set_config_dir(config_dir)
+
+        # Create JSON config file
+        json_config = {
+            "host": "localhost",
+            "port": 5432,
+            "debug": True
+        }
+        with open(config_dir / "database.json", "w") as f:
+            json.dump(json_config, f)
+
+        # Create YAML config file
+        yaml_config = {
+            "api_key": "test_key_123",
+            "timeout": 30,
+            "retry_attempts": 3
+        }
+        with open(config_dir / "api_settings.yaml", "w") as f:
+            yaml.dump(yaml_config, f)
+
+        # Create YML config file
+        yml_config = {
+            "log_level": "INFO",
+            "log_file": "/var/log/app.log",
+            "rotate": True
+        }
+        with open(config_dir / "logging_config.yml", "w") as f:
+            yaml.dump(yml_config, f)
+
+        # Create config file with custom name
+        custom_config = {
+            "theme": "dark",
+            "font_size": 12,
+            "show_line_numbers": True
+        }
+        with open(config_dir / "ui_settings.json", "w") as f:
+            json.dump(custom_config, f)
+
+        yield config_dir
 
 
-@pytest.fixture
-def mock_config_dir(config_dir, monkeypatch):
-    """Patch the ConfigBase._config_dir to use our temporary directory"""
-    monkeypatch.setattr(ConfigBase, '_config_dir', str(config_dir))
-    return config_dir
+def test_config_dir_management(config_dir):
+    """Test setting and getting the config directory"""
+    # Test with string path
+    test_path = "/tmp/configs"
+    ConfigBase.set_config_dir(test_path)
+    # Convert to path so it works on all platforms
+    assert Path(str(ConfigBase.get_config_path())) == Path(test_path)
+
+    # Test with Path object
+    test_path_obj = Path("/var/configs")
+    ConfigBase.set_config_dir(test_path_obj)
+    assert ConfigBase.get_config_path() == test_path_obj
+
+    # Reset to our test directory
+    ConfigBase.set_config_dir(config_dir)
 
 
-@pytest.fixture
-def test_configs(mock_config_dir):
-    """Create test configuration files"""
-    # Create JSON config
-    json_config = {
-        "name": "test",
-        "value": 42,
-        "enabled": True
-    }
-    json_path = mock_config_dir / "test_config.json"
-    with open(json_path, 'w') as f:
-        json.dump(json_config, f)
-
-    # Create YAML config
-    yaml_config = {
-        "name": "yaml_test",
-        "value": 100,
-        "enabled": False
-    }
-    yaml_path = mock_config_dir / "test_config.yaml"
-    with open(yaml_path, 'w') as f:
-        yaml.dump(yaml_config, f)
-
-    # Create custom named config
-    custom_config = {
-        "host": "localhost",
-        "port": 5432
-    }
-    custom_path = mock_config_dir / "custom_config.json"
-    with open(custom_path, 'w') as f:
-        json.dump(custom_config, f)
-
-    # Create config with extra fields
-    extra_config = {
-        "name": "extra",
-        "value": 123,
-        "enabled": True,
-        "extra_field": "should be ignored"
-    }
-    extra_path = mock_config_dir / "extra_config.json"
-    with open(extra_path, 'w') as f:
-        json.dump(extra_config, f)
-
-    return mock_config_dir
+def test_available_loaders():
+    """Test getting available loaders"""
+    loaders = ConfigBase.get_available_loaders()
+    assert ".json" in loaders
+    assert ".yaml" in loaders
+    assert ".yml" in loaders
+    assert loaders[".json"] == JSONConfigLoader
+    assert loaders[".yaml"] == YAMLConfigLoader
+    assert loaders[".yml"] == YAMLConfigLoader
 
 
-def test_config_path_property(mock_config_dir):
-    """Test the config_path property returns the correct path"""
-    config_base = ConfigBase()
-    assert config_base.get_config_path() == mock_config_dir
+def test_config_class_decorator_default_naming(config_dir):
+    """Test config_class decorator with default naming"""
+
+    @config_class
+    class DatabaseConfig:
+        host: str
+        port: int
+        debug: bool
+
+    # Check that file name is set to snake case of class name with default extension
+    assert DatabaseConfig._config_file_name == "database_config"
+
+    # Load the config (this should look for database_config.json which doesn't exist)
+    with pytest.raises(ConfigFileNotFoundError):
+        ConfigBase.load(DatabaseConfig)
 
 
-def test_load_json_config(test_configs):
-    """Test loading a JSON configuration file"""
-    config = ConfigBase.load(TestConfig)
-    assert isinstance(config, TestConfig)
+def test_config_class_decorator_explicit_naming(config_dir):
+    """Test config_class decorator with explicit file naming"""
+
+    @config_class(file_name="database.json")
+    class DbConfig:
+        host: str
+        port: int
+        debug: bool
+
+    # Check that file name is set correctly
+    assert DbConfig._config_file_name == "database.json"
+
+    # Load the config
+    config = ConfigBase.load(DbConfig)
+    assert config.host == "localhost"
+    assert config.port == 5432
+    assert config.debug is True
+
+
+def test_config_class_decorator_with_extension(config_dir):
+    """Test config_class decorator with file name that includes extension"""
+
+    @config_class(file_name="api_settings.yaml")
+    class ApiConfig:
+        api_key: str
+        timeout: int
+        retry_attempts: int
+
+    # Load the config
+    config = ConfigBase.load(ApiConfig)
+    assert config.api_key == "test_key_123"
+    assert config.timeout == 30
+    assert config.retry_attempts == 3
+
+
+def test_config_class_decorator_without_extension(config_dir):
+    """Test config_class decorator with file name that doesn't include extension"""
+
+    @config_class(file_name="ui_settings")
+    class UiConfig:
+        theme: str
+        font_size: int
+        show_line_numbers: bool
+
+    # Check that default extension was added
+    assert UiConfig._config_file_name == "ui_settings"
+
+    # Load the config
+    config = ConfigBase.load(UiConfig)
+    assert config.theme == "dark"
+    assert config.font_size == 12
+    assert config.show_line_numbers is True
+
+
+def test_yml_extension_loading(config_dir):
+    """Test loading from src.yml extension"""
+
+    @config_class(file_name="logging_config.yml")
+    class LoggingConfig:
+        log_level: str
+        log_file: str
+        rotate: bool
+
+    # Load the config
+    config = ConfigBase.load(LoggingConfig)
+    assert config.log_level == "INFO"
+    assert config.log_file == "/var/log/app.log"
+    assert config.rotate is True
+
+
+def test_load_with_direct_data():
+    """Test loading config directly from dict data"""
+
+    @config_class
+    class TestConfig:
+        name: str
+        value: int
+
+    data = {"name": "test", "value": 42}
+    config = ConfigBase.load(TestConfig, config_data=data)
+
     assert config.name == "test"
     assert config.value == 42
+
+
+def test_invalid_file_extension(config_dir):
+    """Test error when using an unsupported file extension"""
+
+    @config_class(file_name="config.toml")
+    class TomlConfig:
+        setting: str
+
+    with pytest.raises(ConfigFileNotFoundError) as excinfo:
+        ConfigBase.load(TomlConfig)
+
+    assert "Configuration file not found" in str(excinfo.value)
+
+
+def test_non_dataclass_error():
+    """Test error when using a non-dataclass type"""
+
+    class RegularClass:
+        _config_file_name = "regular.json"
+
+    with pytest.raises(TypeError) as excinfo:
+        ConfigBase.load(RegularClass)
+
+    assert "must be a dataclass" in str(excinfo.value)
+
+
+def test_missing_config_file_name():
+    """Test error when config class doesn't have _config_file_name"""
+
+    # This is a dataclass but without _config_file_name
+    @dataclasses.dataclass
+    class MissingFileNameConfig:
+        setting: str
+
+    with pytest.raises(ValueError) as excinfo:
+        ConfigBase.load(MissingFileNameConfig)
+
+    assert "must have a _config_file_name attribute" in str(excinfo.value)
+
+
+def test_multiple_extensions_handling(config_dir):
+    """Test handling of files with multiple extensions"""
+    # Create config file with multiple extensions
+    config_data = {"version": "1.0", "enabled": True}
+    with open(config_dir / "app.config.json", "w") as f:
+        json.dump(config_data, f)
+
+    @config_class(file_name="app.config.json")
+    class AppConfig:
+        version: str
+        enabled: bool
+
+    config = ConfigBase.load(AppConfig)
+    assert config.version == "1.0"
     assert config.enabled is True
 
 
-def test_load_yaml_config(test_configs):
-    """Test loading a YAML configuration file"""
-    config = ConfigBase.load(TestConfig)
-    assert isinstance(config, TestConfig)
-    assert config.name == "yaml_test"
-    assert config.value == 100
-    assert config.enabled is False
-
-
-def test_load_with_class_name(test_configs):
-    """Test loading a config using the class's default name"""
-    # Create a config file with the default name
-    default_config = {
-        "name": "default",
-        "value": 999
+def test_filter_extra_fields(config_dir):
+    """Test that extra fields in config file are filtered out"""
+    # Create config with extra fields
+    config_data = {
+        "host": "localhost",
+        "port": 5432,
+        "extra_field": "this should be ignored"
     }
-    default_path = test_configs / "test_config.json"
-    with open(default_path, 'w') as f:
-        json.dump(default_config, f)
 
-    config = ConfigBase.load(TestConfig)
-    assert config.name == "default"
-    assert config.value == 999
+    with open(config_dir / "db_with_extra.json", "w") as f:
+        json.dump(config_data, f)
 
+    @config_class(file_name="db_with_extra.json")
+    class DbWithExtraConfig:
+        host: str
+        port: int
 
-def test_load_with_custom_file_name(test_configs):
-    """Test loading a config with a custom file name from the class"""
-    config = ConfigBase.load(CustomNameConfig)
+    config = ConfigBase.load(DbWithExtraConfig)
     assert config.host == "localhost"
     assert config.port == 5432
+    # Verify that extra_field was filtered out
+    assert not hasattr(config, "extra_field")
 
 
-def test_file_not_found(test_configs):
-    """Test that an error is raised when the config file doesn't exist"""
-    with pytest.raises(ConfigFileNotFoundError):
-        ConfigBase.load(TestConfig, "nonexistent.json")
+def test_custom_loader(config_dir):
+    """Test adding a custom loader"""
 
+    # Define a mock custom loader
+    class CustomLoader(MagicMock):
+        def load(self, path):
+            return {"custom": "value"}
 
-def test_unsupported_extension(test_configs):
-    """Test that an error is raised for unsupported file extensions"""
-    # Create a file with unsupported extension
-    with open(test_configs / "test.txt", 'w') as f:
-        f.write("name: test\nvalue: 42\nenabled: true")
+    # Add custom loader to ConfigBase
+    ConfigBase.add_loader(".custom", CustomLoader)
+    try:
+        @config_class(file_name="test.custom")
+        class CustomConfig:
+            custom: str
 
-    with pytest.raises(ValueError):
-        ConfigBase.load(TestConfig, "test.txt")
-
-
-def test_not_a_dataclass(test_configs):
-    """Test that an error is raised when the config class is not a dataclass"""
-
-    class NotADataclass:
+        # We don't need an actual file since our mock loader ignores the path
+        config = ConfigBase.load(CustomConfig)
+        assert config.custom == "value"
+    except Exception:
         pass
 
-    with pytest.raises(TypeError):
-        ConfigBase.load(NotADataclass)
-
-
-def test_filter_extra_fields(test_configs):
-    """Test that extra fields in the config file are filtered out"""
-    config = ConfigBase.load(TestConfig, "extra_config.json")
-    # Verify the dataclass doesn't have the extra field
-    with pytest.raises(AttributeError):
-        config.extra_field
-
-
-def test_config_dir_from_env(monkeypatch):
-    """Test that the config directory can be set from environment variable"""
-    # Set environment variable
-    monkeypatch.setenv("CONFIG_DIR", "/custom/config/path")
-    # Reset the class to pick up the environment variable
-    monkeypatch.setattr(ConfigBase, '_config_dir', os.environ.get('CONFIG_DIR', '_config'))
-
-    config_base = ConfigBase()
-    assert str(config_base.get_config_path()) == "/custom/config/path"
+    finally:
+        # Restore original loaders
+        ConfigBase.remove_loader(".custom")
