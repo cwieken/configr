@@ -1,9 +1,11 @@
 name: Deploy MkDocs to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Run Tests"]  # Name of pytest workflow
+    branches: [main]
+    types:
+      - completed
   workflow_dispatch:  # Manual trigger
 
 permissions:
@@ -13,6 +15,8 @@ permissions:
 
 jobs:
   build:
+    # Only run if the test workflow was successful
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
