@@ -31,9 +31,12 @@ jobs:
       run: |
         pytest tests/
 
-    - name: Test with pytest
+    - name: Run tests with coverage
       run: |
-        coverage run -m pytest  -v -s
+        coverage run -m pytest -v -s
+
     - name: Generate Coverage Report
       run: |
         coverage report -m
+        coverage xml -o coverage.xml
+        
