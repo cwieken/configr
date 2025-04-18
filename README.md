@@ -4,10 +4,10 @@ A flexible, type-safe configuration management library for Python.
 
 Configr simplifies configuration management by leveraging Python's dataclasses and type hints to provide a robust, type-safe approach to application configuration.
 
-[![Run Tests](https://github.com/cwieken/configr/actions/workflows/run-tests.yml/badge.svg)](https://github.com/cwieken/configr/actions/workflows/run-tests.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Versions](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12%20|%203.13-blue)](https://www.python.org/)
-
+[![PyPI version](https://img.shields.io/pypi/v/py-configr.svg)](https://pypi.org/project/py-configr/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/cwieken/configr/actions/workflows/run-tests.yml/badge.svg)](https://github.com/cwieken/configr/actions/workflows/run-tests.yml)
 
 - **Type Safety**: Leverage Python's type hints for configuration validation
 - **Dataclass Integration**: Seamlessly map configuration files to Python dataclasses
