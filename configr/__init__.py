@@ -18,10 +18,10 @@ Typical usage:
 
     @config_class(file_name="database")
     class DatabaseConfig:
-        host: str
-        port: int = 5432
         username: str
         password: str
+        host: str
+        port: int = 5432
 
     # Load configuration from file
     config = ConfigBase.load(DatabaseConfig)

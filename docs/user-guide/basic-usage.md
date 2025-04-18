@@ -52,11 +52,11 @@ from configr import config_class
 
 @config_class(file_name="database.json")
 class DatabaseConfig:
-    host: str
-    port: int = 5432
     username: str
     password: str
     database: str
+    host: str
+    port: int = 5432
 
 @config_class(file_name="app_settings.yaml")
 class AppSettings:

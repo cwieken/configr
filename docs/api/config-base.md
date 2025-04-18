@@ -172,11 +172,11 @@ from configr import ConfigBase, config_class
 
 @config_class
 class DatabaseConfig:
-    host: str = "localhost"
-    port: int = 5432
     username: str
     password: str
     database: str
+    host: str = "localhost"
+    port: int = 5432
 
 # Load configuration from file
 db_config = ConfigBase.load(DatabaseConfig)
@@ -258,11 +258,11 @@ from configr import ConfigBase, config_class
 
 @config_class(file_name="database.json")
 class DatabaseConfig:
-    host: str = "localhost"
-    port: int = 5432
     username: str
     password: str
     database: str
+    host: str = "localhost"
+    port: int = 5432
 
 @config_class(file_name="app.yaml")
 class AppConfig:

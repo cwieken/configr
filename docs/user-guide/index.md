@@ -69,11 +69,11 @@ import os
 
 @config_class(file_name=f"database.{os.environ.get('ENV', 'dev')}.json")
 class DatabaseConfig:
-    host: str
-    port: int = 5432
     username: str
     password: str
     database: str
+    host: str
+    port: int = 5432
 ```
 
 ### Configuration Validation

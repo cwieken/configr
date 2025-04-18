@@ -11,11 +11,11 @@ from configr import config_class
 
 @config_class
 class DatabaseConfig:
-    host: str = 'localhost'
-    port: int = 5432
     username: str
     password: str
     database: str
+    host: str = 'localhost'
+    port: int = 5432
 ```
 
 This class defines a configuration with five fields:

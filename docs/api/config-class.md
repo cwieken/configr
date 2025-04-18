@@ -60,11 +60,11 @@ from configr import config_class, ConfigBase
 
 @config_class
 class DatabaseConfig:
-    host: str
-    port: int = 5432
     username: str
     password: str
     database: str
+    host: str
+    port: int = 5432
 
 # Load configuration
 db_config = ConfigBase.load(DatabaseConfig)
@@ -77,11 +77,11 @@ from configr import config_class, ConfigBase
 
 @config_class(file_name="db_config.yaml")
 class DatabaseConfig:
-    host: str
-    port: int = 5432
     username: str
     password: str
     database: str
+    host: str
+    port: int = 5432
 
 # Load configuration from db_config.yaml
 db_config = ConfigBase.load(DatabaseConfig)

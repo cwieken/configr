@@ -37,11 +37,11 @@ from configr import config_class, ConfigBase
 
 @config_class(file_name="database.json")
 class DatabaseConfig:
-    host: str
-    port: int = 5432
     username: str
     password: str
     database: str
+    host: str
+    port: int = 5432
 
 # Load configuration
 db_config = ConfigBase.load(DatabaseConfig)
