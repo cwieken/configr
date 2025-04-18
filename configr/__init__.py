@@ -35,6 +35,7 @@ Typical usage:
     )
 """
 import sys
+
 # Import the main classes and functions to expose them at the package level
 from .base import ConfigBase
 from .config_class import config_class
