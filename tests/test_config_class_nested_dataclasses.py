@@ -1,5 +1,6 @@
 import dataclasses
-from unittest.mock import patch, MagicMock
+from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -8,7 +9,7 @@ from src.config_class import config_class
 
 
 def test_nested_dataclass_loading():
-    """Test loading configuration with nested dataclasses"""
+    """Test loading configuration with nested dataclasses."""
 
     @config_class(file_name="nested_child.json")
     class ChildConfig:
@@ -31,7 +32,8 @@ def test_nested_dataclass_loading():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path', return_value="mock_path"):
+        with patch.object(ConfigBase, '_get_config_file_path',
+                          return_value="mock_path"):
             # Load the parent config
             config = ConfigBase.load(ParentConfig)
 
@@ -45,7 +47,7 @@ def test_nested_dataclass_loading():
 
 
 def test_deeply_nested_dataclass_loading():
-    """Test loading configuration with multiple levels of nested dataclasses"""
+    """Test loading with multiple levels of nested dataclasses."""
 
     @config_class(file_name="nested_grandchild.json")
     class GrandchildConfig:
@@ -76,7 +78,8 @@ def test_deeply_nested_dataclass_loading():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path', return_value="mock_path"):
+        with patch.object(ConfigBase, '_get_config_file_path',
+                          return_value="mock_path"):
             # Load the parent config
             config = ConfigBase.load(ParentConfig)
 
@@ -90,11 +93,12 @@ def test_deeply_nested_dataclass_loading():
             # Verify that the grandchild config was loaded correctly
             assert isinstance(config.child.grandchild, GrandchildConfig)
             assert config.child.grandchild.id == 123
-            assert config.child.grandchild.description == "Grandchild Description"
+            assert config.child.grandchild.description == ("Grandchild "
+                                                           "Description")
 
 
 def test_nested_dataclass_with_missing_values():
-    """Test loading configuration with nested dataclasses where some values are missing"""
+    """Test loading with nested dataclasses where some values are missing."""
 
     @config_class(file_name="nested_child.json")
     class ChildConfig:
@@ -117,7 +121,8 @@ def test_nested_dataclass_with_missing_values():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path', return_value="mock_path"):
+        with patch.object(ConfigBase, '_get_config_file_path',
+                          return_value="mock_path"):
             # Load the parent config
             config = ConfigBase.load(ParentConfig)
 
@@ -131,11 +136,10 @@ def test_nested_dataclass_with_missing_values():
 
 
 def test_nested_dataclass_with_null_value():
-    """Test loading configuration with nested dataclasses where a nested value is null"""
-
+    """Test loading where a nested value is null."""
     @dataclasses.dataclass
     class DefaultInitChildConfig:
-        """A dataclass that can be initialized with no arguments"""
+        """A dataclass that can be initialized with no arguments."""
         name: str = "Default Name"
         value: int = 0
 
@@ -152,7 +156,8 @@ def test_nested_dataclass_with_null_value():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path', return_value="mock_path"):
+        with patch.object(ConfigBase, '_get_config_file_path',
+                          return_value="mock_path"):
             # Load the parent config
             config = ConfigBase.load(ParentConfig)
 
@@ -166,10 +171,7 @@ def test_nested_dataclass_with_null_value():
 
 
 def test_nested_dataclass_with_list():
-    """Test loading configuration with a list of nested dataclasses"""
-
-    from typing import List
-
+    """Test loading configuration with a list of nested dataclasses."""
     @config_class(file_name="item_config.json")
     class ItemConfig:
         id: int
@@ -178,7 +180,7 @@ def test_nested_dataclass_with_list():
     @config_class(file_name="collection_config.json")
     class CollectionConfig:
         title: str
-        items: List[ItemConfig]
+        items: list[ItemConfig]
 
     # This test should fail because the current implementation doesn't handle
     # lists of dataclasses automatically. This test documents this limitation.
@@ -195,14 +197,13 @@ def test_nested_dataclass_with_list():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path', return_value="mock_path"):
-            # This should fail because the __load_nested_dataclasses method
-            # doesn't check for List[dataclass] types
+        with patch.object(ConfigBase, '_get_config_file_path',
+                          return_value="mock_path"):
             ConfigBase.load(CollectionConfig)
 
 
 def test_nested_dataclass_with_type_checking():
-    """Test type validation with nested dataclasses"""
+    """Test type validation with nested dataclasses."""
 
     @config_class(file_name="nested_child.json")
     class ChildConfig:
@@ -225,7 +226,8 @@ def test_nested_dataclass_with_type_checking():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path', return_value="mock_path"):
+        with patch.object(ConfigBase, '_get_config_file_path',
+                          return_value="mock_path"):
             # Should raise ConfigValidationError due to type mismatch
             from src.exceptions import ConfigValidationError
             with pytest.raises(ConfigValidationError):
@@ -233,14 +235,12 @@ def test_nested_dataclass_with_type_checking():
 
 
 def test_nested_dataclass_with_generic_types():
-    """Test loading configuration with nested dataclasses using generic types"""
-
-    from typing import Dict, Any
+    """Test loading configs with nested dataclasses using generic types."""
 
     @config_class(file_name="metadata_config.json")
     class MetadataConfig:
-        tags: Dict[str, str]
-        settings: Dict[str, Any]
+        tags: dict[str, str]
+        settings: dict[str, Any]
 
     @config_class(file_name="app_config.json")
     class AppConfig:
@@ -265,7 +265,8 @@ def test_nested_dataclass_with_generic_types():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path', return_value="mock_path"):
+        with patch.object(ConfigBase, '_get_config_file_path',
+                          return_value="mock_path"):
             # Load the config
             config = ConfigBase.load(AppConfig)
 

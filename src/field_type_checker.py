@@ -1,20 +1,42 @@
-from typing import Any, get_origin, Type, get_args, Union
+"""
+Type checking utilities for configuration fields.
+
+This module provides strict type checking for dataclass fields used in
+configuration classes. It supports validating basic types, generic types
+(List, Dict, Set, Tuple), Union types, and nested type structures.
+
+The module includes:
+- FieldTypeChecker class: Utility class for validating that values match their
+  expected types according to type annotations without performing type conversion
+- Specialized type checking methods for different type structures
+- Support for complex nested type validation
+
+Typical usage:
+    fields = {f.name: f.type for f in dataclasses.fields(config_class)}
+    filtered_data = {k: v for k, v in config_data.items() if k in fields}
+
+    try:
+        FieldTypeChecker.check_types(fields, filtered_data)
+    except TypeError as exc:
+        raise ConfigValidationError(f"Configuration validation failed: {exc}")
+"""
+from typing import Any, Union, get_args, get_origin
 
 
 class FieldTypeChecker:
     """
-    A utility class for checking if values match their expected types according to type annotations.
+    A utility class for checking if values match their expected types.
 
-    This class provides strict type checking for dataclass fields, supporting basic types,
-    generic types (List, Dict, Set, Tuple), Union types, and nested type structures.
+    This class provides strict type checking for dataclass fields,
+    supporting basic types, generic types (List, Dict, Set, Tuple),
+    Union types, and nested type structures.
 
     It does not perform type conversion.
     """
-
     @classmethod
-    def check_types(cls, fields: dict[str, Type], data: dict) -> None:
+    def check_types(cls, fields: dict[str, type], data: dict) -> None:
         """
-        Check that all values in data match their expected types as defined in fields.
+        Check that all values match their expected types as defined in fields.
 
         Args:
             fields: A dictionary mapping field names to their type annotations.
@@ -40,7 +62,8 @@ class FieldTypeChecker:
                 cls.__check_basic_types(field_name, field_type, value)
 
     @classmethod
-    def __check_basic_types(cls, field_name: str, field_types: Type | tuple[Any, ...], value: any) -> None:
+    def __check_basic_types(cls, field_name: str,
+                            field_types: type | tuple[Any, ...], value: any) -> None:
         """
         Check if a value matches a basic (non-generic) type annotation.
 
@@ -60,15 +83,21 @@ class FieldTypeChecker:
             return
 
         # Handle basic types
-        # we use non-strict type checking, e.g., an int of 0 or 1 is allowed if a bool is required
+        # we use non-strict type checking, e.g., an int of 0 or 1
+        # is allowed if a bool is required
         if value is not None and not isinstance(value, field_types):
-            expected_types = ', '.join(str(expected_type) for expected_type in field_types)
-            raise TypeError(f"Expected {field_name} to be of type {expected_types}, got {type(value)}")
+            expected_types = ', '.join(str(expected_type) for
+                                       expected_type in field_types)
+            raise TypeError(f"Expected {field_name} to be of type "
+                            f"{expected_types}, got {type(value)}")
 
     @classmethod
-    def __check_generic_types(cls, field_name: str, field_type: Type | tuple[Any, ...], value: any) -> None:
+    def __check_generic_types(cls, field_name: str,
+                              field_type: type | tuple[Any, ...], value: any) -> None:
         """
-        Check if a value matches a generic type annotation (List, Dict, Set, Tuple, Union, etc.).
+        Check if a value matches a generic type annotation.
+
+        This includes List, Dict, Set, Tuple, Union, etc.
 
         Args:
             field_name: The name of the field being checked.
@@ -103,12 +132,15 @@ class FieldTypeChecker:
                     try:
                         # Handle nested generic types
                         if get_origin(origin_args[0]) is not None:
-                            cls.__check_generic_types(field_name, origin_args[0], value_elem)
+                            cls.__check_generic_types(
+                                field_name, origin_args[0], value_elem)
 
                         else:
-                            cls.__check_basic_types(field_name, origin_args, value_elem)
+                            cls.__check_basic_types(
+                                field_name, origin_args, value_elem)
                     except TypeError as exc:
-                        raise TypeError(f"Element {i} of {field_name}: {exc}") from exc
+                        raise TypeError(f"Element {i} of {field_name}: "
+                                        f"{exc}") from exc
                 return
 
             elif origin_type is Union:
@@ -119,9 +151,12 @@ class FieldTypeChecker:
             return
 
     @classmethod
-    def __check_tuple_type(cls, field_name: str, field_types: tuple[Any, ...], value: any) -> None:
+    def __check_tuple_type(cls, field_name: str,
+                           field_types: tuple[Any, ...], value: any) -> None:
         """
-        Check if a value matches a tuple type annotation, including fixed-size and variable-size tuples.
+        Check if a value matches a tuple type annotation.
+
+        This includes fixed-size and variable-size tuples.
 
         Args:
             field_name: The name of the field being checked.
@@ -129,13 +164,16 @@ class FieldTypeChecker:
             value: The tuple value to check.
 
         Raises:
-            TypeError: If the tuple doesn't match the expected structure or element types.
+            TypeError: If the tuple doesn't match the expected structure
+                       or element types.
         """
         field_types = cls.convert_ellipsis_to_types(field_types, value)
         if len(value) != len(field_types):
-            raise TypeError(f"Expected {field_name} to be of length {len(field_types)}, but is {len(value)}")
+            raise TypeError(f"Expected {field_name} to be of length "
+                            f"{len(field_types)}, but is {len(value)}")
 
-        for i, (item, expected_type) in enumerate(zip(value, field_types)):
+        for i, (item, expected_type) in enumerate(zip(
+                value, field_types, strict=True)):
             try:
                 if get_origin(item) is not None:
                     cls.__check_generic_types(field_name, expected_type, item)
@@ -145,9 +183,12 @@ class FieldTypeChecker:
                 raise TypeError(f"Element {i} of {field_name}: {exc}") from exc
 
     @classmethod
-    def __check_dict_type(cls, field_name: str, field_types: tuple[Any, ...], value: any) -> None:
+    def __check_dict_type(cls, field_name: str,
+                          field_types: tuple[Any, ...], value: any) -> None:
         """
-        Check if a value matches a dictionary type annotation, including checking key and value types.
+        Check if a value matches a dictionary type annotation.
+
+        This includes checking both its keys and values.
 
         Args:
             field_name: The name of the field being checked.
@@ -155,7 +196,8 @@ class FieldTypeChecker:
             value: The dictionary value to check.
 
         Raises:
-            TypeError: If any key or value in the dictionary doesn't match its expected type.
+            TypeError: If any key or value in the dictionary doesn't match its
+                       expected type.
         """
         for key, elem_value in value.items():
             key_type, value_type = field_types
@@ -167,10 +209,12 @@ class FieldTypeChecker:
             try:
                 cls.__check_basic_types(field_name, value_type, elem_value)
             except TypeError as exc:
-                raise TypeError(f"Value {elem_value} of {field_name}: {exc}") from exc
+                raise TypeError(f"Value {elem_value} of {field_name}: "
+                                f"{exc}") from exc
 
     @classmethod
-    def __check_union_types(cls, field_name: str, field_types: tuple[Any, ...], value: any) -> None:
+    def __check_union_types(cls, field_name: str,
+                            field_types: tuple[Any, ...], value: any) -> None:
         """
         Check if a value matches any of the types in a Union type annotation.
 
@@ -180,7 +224,7 @@ class FieldTypeChecker:
             value: The value to check.
 
         Raises:
-            TypeError: If the value doesn't match any of the types in the Union.
+            TypeError: If the value doesn't match any type in the Union.
         """
         found_correct_type = False
         for arg_type in field_types:
@@ -196,15 +240,20 @@ class FieldTypeChecker:
                 continue
 
         if not found_correct_type:
-            expected_types = ', '.join(str(expected_type) for expected_type in field_types)
-            raise TypeError(f"Value for '{field_name}' doesn't match any type in {expected_types}, got {type(value)}")
+            expected_types = ', '.join(str(expected_type) for
+                                       expected_type in field_types)
+            raise TypeError(f"Value for '{field_name}' doesn't match "
+                            f"any type in {expected_types}, got {type(value)}")
 
     @staticmethod
-    def convert_ellipsis_to_types(field_types: tuple[Any, ...], value: tuple) -> tuple[Any, ...]:
+    def convert_ellipsis_to_types(field_types: tuple[Any, ...],
+                                  value: tuple) -> tuple[Any, ...]:
         """
-        Convert a tuple type with Ellipsis (e.g., Tuple[int, ...]) to a tuple of concrete types.
+        Convert a tuple type with Ellipsis to concrete types.
 
-        This handles variable-length tuples by repeating the type before the Ellipsis.
+        This handles variable-length tuples by repeating the type
+        before the Ellipsis, e.g. (Tuple[float, int, ...]) becomes
+        (float, int, int, int) for a tuple of length 4.
 
         Args:
             field_types: The tuple of types, potentially containing an Ellipsis.
@@ -223,7 +272,8 @@ class FieldTypeChecker:
         # Get the type before the Ellipsis
         previous_type = field_types[index - 1]
 
-        # Replace the Ellipsis with the previous type for the length of elements in the tuple
+        # Replace the Ellipsis with the previous type
+        # for the length of elements in the tuple
         new_field_list = field_types[:index] + (previous_type,) * (len(value) - index)
 
         return new_field_list

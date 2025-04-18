@@ -1,3 +1,26 @@
+"""
+Configuration class decorator module.
+
+This module provides a decorator for creating configuration classes that can be
+automatically loaded by the ConfigBase class. The decorator handles both marking
+the class as a dataclass and setting the configuration file name.
+
+The module includes:
+- config_class decorator: Marks a class as a configuration class and sets the
+  configuration file name, either explicitly or derived from the class name
+
+Typical usage:
+    @config_class(file_name="database.json")
+    class DatabaseConfig:
+        host: str
+        port: int = 5432
+
+    # or with default filename (database_config)
+    @config_class
+    class DatabaseConfig:
+        host: str
+        port: int = 5432
+"""
 import dataclasses
 
 from .utils import to_snake_case
@@ -6,6 +29,7 @@ from .utils import to_snake_case
 def config_class(cls=None, *, file_name: str = None):
     """
     Decorator to mark a class as a configuration class.
+
     This allows specifying a custom file name for the configuration.
 
     Usage:

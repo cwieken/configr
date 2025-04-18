@@ -15,7 +15,7 @@ from src.loaders import JSONConfigLoader, YAMLConfigLoader
 
 @pytest.fixture
 def config_dir():
-    """Fixture to create and manage temporary config directory"""
+    """Fixture to create and manage temporary config directory."""
     with tempfile.TemporaryDirectory() as temp_dir:
         config_dir = Path(temp_dir)
         ConfigBase.set_config_dir(config_dir)
@@ -60,9 +60,9 @@ def config_dir():
 
 
 def test_config_dir_management(config_dir):
-    """Test setting and getting the config directory"""
+    """Test setting and getting the config directory."""
     # Test with string path
-    test_path = "/tmp/configs"
+    test_path = "/test/configs"
     ConfigBase.set_config_dir(test_path)
     # Convert to path so it works on all platforms
     assert Path(str(ConfigBase.get_config_path())) == Path(test_path)
@@ -77,7 +77,7 @@ def test_config_dir_management(config_dir):
 
 
 def test_available_loaders():
-    """Test getting available loaders"""
+    """Test getting available loaders."""
     loaders = ConfigBase.get_available_loaders()
     assert ".json" in loaders
     assert ".yaml" in loaders
@@ -88,7 +88,7 @@ def test_available_loaders():
 
 
 def test_config_class_decorator_default_naming(config_dir):
-    """Test config_class decorator with default naming"""
+    """Test config_class decorator with default naming."""
 
     @config_class
     class DatabaseConfig:
@@ -105,7 +105,7 @@ def test_config_class_decorator_default_naming(config_dir):
 
 
 def test_config_class_decorator_explicit_naming(config_dir):
-    """Test config_class decorator with explicit file naming"""
+    """Test config_class decorator with explicit file naming."""
 
     @config_class(file_name="database.json")
     class DbConfig:
@@ -124,7 +124,7 @@ def test_config_class_decorator_explicit_naming(config_dir):
 
 
 def test_config_class_decorator_with_extension(config_dir):
-    """Test config_class decorator with file name that includes extension"""
+    """Test config_class decorator with file name that includes extension."""
 
     @config_class(file_name="api_settings.yaml")
     class ApiConfig:
@@ -140,7 +140,7 @@ def test_config_class_decorator_with_extension(config_dir):
 
 
 def test_config_class_decorator_without_extension(config_dir):
-    """Test config_class decorator with file name that doesn't include extension"""
+    """Test config_class decorator with file name that doesn't include extension."""
 
     @config_class(file_name="ui_settings")
     class UiConfig:
@@ -159,7 +159,7 @@ def test_config_class_decorator_without_extension(config_dir):
 
 
 def test_yml_extension_loading(config_dir):
-    """Test loading from src.yml extension"""
+    """Test loading from src.yml extension."""
 
     @config_class(file_name="logging_config.yml")
     class LoggingConfig:
@@ -175,7 +175,7 @@ def test_yml_extension_loading(config_dir):
 
 
 def test_load_with_direct_data():
-    """Test loading config directly from dict data"""
+    """Test loading config directly from dict data."""
 
     @config_class
     class TestConfig:
@@ -190,7 +190,7 @@ def test_load_with_direct_data():
 
 
 def test_invalid_file_extension(config_dir):
-    """Test error when using an unsupported file extension"""
+    """Test error when using an unsupported file extension."""
 
     @config_class(file_name="config.toml")
     class TomlConfig:
@@ -203,7 +203,7 @@ def test_invalid_file_extension(config_dir):
 
 
 def test_non_dataclass_error():
-    """Test error when using a non-dataclass type"""
+    """Test error when using a non-dataclass type."""
 
     class RegularClass:
         _config_file_name = "regular.json"
@@ -215,7 +215,7 @@ def test_non_dataclass_error():
 
 
 def test_missing_config_file_name():
-    """Test error when config class doesn't have _config_file_name"""
+    """Test error when config class doesn't have _config_file_name."""
 
     # This is a dataclass but without _config_file_name
     @dataclasses.dataclass
@@ -229,7 +229,7 @@ def test_missing_config_file_name():
 
 
 def test_multiple_extensions_handling(config_dir):
-    """Test handling of files with multiple extensions"""
+    """Test handling of files with multiple extensions."""
     # Create config file with multiple extensions
     config_data = {"version": "1.0", "enabled": True}
     with open(config_dir / "app.config.json", "w") as f:
@@ -246,7 +246,7 @@ def test_multiple_extensions_handling(config_dir):
 
 
 def test_filter_extra_fields(config_dir):
-    """Test that extra fields in config file are filtered out"""
+    """Test that extra fields in a config file are filtered out."""
     # Create config with extra fields
     config_data = {
         "host": "localhost",
@@ -270,7 +270,9 @@ def test_filter_extra_fields(config_dir):
 
 
 def test_custom_loader(config_dir):
-    """Test adding a custom loader"""
+    """Test adding a custom loader."""
+    # Create an empty config file for the custom loader
+    open(config_dir / "test.custom", "a").close()
 
     # Define a mock custom loader
     class CustomLoader(MagicMock):
@@ -287,8 +289,6 @@ def test_custom_loader(config_dir):
         # We don't need an actual file since our mock loader ignores the path
         config = ConfigBase.load(CustomConfig)
         assert config.custom == "value"
-    except Exception:
-        pass
 
     finally:
         # Restore original loaders

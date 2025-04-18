@@ -1,10 +1,29 @@
+"""
+Utility functions for string manipulation and other common operations.
+
+This module provides helper functions that are used across the configuration
+management system, such as string case conversion utilities that help with
+naming conventions and file path generation.
+
+The module includes:
+- to_snake_case: Converts strings from various formats (CamelCase, PascalCase)
+  to snake_case, preserving numbers and handling special characters
+
+Typical usage:
+    # Convert class name to file name
+    file_name = to_snake_case("DatabaseConfig")  # "database_config"
+
+    # Convert mixed-case identifier
+    field_name = to_snake_case("maxConnections")  # "max_connections"
+"""
 import re
 
 
 def to_snake_case(name: str) -> str:
     """
-    Convert name to snake case, special chars are replaced with _.
-    and numbers are kept.
+    Convert name to snake case.
+
+    Special chars are replaced with _and numbers are kept.
 
     Examples:
         - "TestName" -> "test_name"

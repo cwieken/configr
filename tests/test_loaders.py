@@ -10,14 +10,14 @@ from src.loaders import ConfigLoader, JSONConfigLoader, YAMLConfigLoader
 
 @pytest.fixture
 def temp_dir():
-    """Create a temporary directory for test files"""
+    """Create a temporary directory for test files."""
     with tempfile.TemporaryDirectory() as temp_dir:
         yield Path(temp_dir)
 
 
 @pytest.fixture
 def json_config_file(temp_dir):
-    """Create a temporary JSON config file"""
+    """Create a temporary JSON config file."""
     config_data = {
         "name": "test_config",
         "version": "1.0.0",
@@ -36,7 +36,7 @@ def json_config_file(temp_dir):
 
 @pytest.fixture
 def yaml_config_file(temp_dir):
-    """Create a temporary YAML config file"""
+    """Create a temporary YAML config file."""
     yaml_content = """
     name: test_config
     version: 1.0.0
@@ -54,7 +54,7 @@ def yaml_config_file(temp_dir):
 
 @pytest.fixture
 def invalid_json_file(temp_dir):
-    """Create an invalid JSON file"""
+    """Create an invalid JSON file."""
     file_path = temp_dir / "invalid.json"
     with open(file_path, 'w') as f:
         f.write('{"name": "test", "invalid": }')  # Missing value
@@ -64,7 +64,7 @@ def invalid_json_file(temp_dir):
 
 @pytest.fixture
 def invalid_yaml_file(temp_dir):
-    """Create an invalid YAML file"""
+    """Create an invalid YAML file."""
     file_path = temp_dir / "invalid.yaml"
     with open(file_path, 'w') as f:
         f.write('name: test\ninvalid: : value')  # Invalid syntax
@@ -73,13 +73,13 @@ def invalid_yaml_file(temp_dir):
 
 
 def test_abstract_config_loader():
-    """Test that ConfigLoader is an abstract base class that cannot be instantiated"""
+    """Test that ConfigLoader is an abstract base class that cannot be instantiated."""
     with pytest.raises(TypeError):
         ConfigLoader().load(Path("some/path"))
 
 
 def test_json_config_loader(json_config_file):
-    """Test loading a valid JSON configuration file"""
+    """Test loading a valid JSON configuration file."""
     loader = JSONConfigLoader()
     config = loader.load(json_config_file)
 
@@ -91,21 +91,21 @@ def test_json_config_loader(json_config_file):
 
 
 def test_json_config_loader_file_not_found():
-    """Test JSONConfigLoader raises an error when file is not found"""
+    """Test JSONConfigLoader raises an error when file is not found."""
     loader = JSONConfigLoader()
     with pytest.raises(FileNotFoundError):
         loader.load(Path("nonexistent_file.json"))
 
 
 def test_json_config_loader_invalid_json(invalid_json_file):
-    """Test JSONConfigLoader raises an error when JSON is invalid"""
+    """Test JSONConfigLoader raises an error when JSON is invalid."""
     loader = JSONConfigLoader()
     with pytest.raises(json.JSONDecodeError):
         loader.load(invalid_json_file)
 
 
 def test_yaml_config_loader(yaml_config_file):
-    """Test loading a valid YAML configuration file"""
+    """Test loading a valid YAML configuration file."""
     try:
         loader = YAMLConfigLoader()
         config = loader.load(yaml_config_file)
@@ -120,7 +120,7 @@ def test_yaml_config_loader(yaml_config_file):
 
 
 def test_yaml_config_loader_file_not_found():
-    """Test YAMLConfigLoader raises an error when file is not found"""
+    """Test YAMLConfigLoader raises an error when file is not found."""
     try:
         loader = YAMLConfigLoader()
         with pytest.raises(FileNotFoundError):
@@ -130,7 +130,7 @@ def test_yaml_config_loader_file_not_found():
 
 
 def test_yaml_config_loader_invalid_yaml(invalid_yaml_file):
-    """Test YAMLConfigLoader raises an error when YAML is invalid"""
+    """Test YAMLConfigLoader raises an error when YAML is invalid."""
     try:
         import yaml
         loader = YAMLConfigLoader()
@@ -142,7 +142,7 @@ def test_yaml_config_loader_invalid_yaml(invalid_yaml_file):
 
 @patch('src.loaders.YAML_AVAILABLE', False)
 def test_yaml_loader_without_yaml_module():
-    """Test YAMLConfigLoader raises ImportError when PyYAML is not available"""
+    """Test YAMLConfigLoader raises ImportError when PyYAML is not available."""
     loader = YAMLConfigLoader()
     with pytest.raises(ImportError) as exc:
         loader.load(Path("some_file.yaml"))
@@ -151,7 +151,7 @@ def test_yaml_loader_without_yaml_module():
 
 
 def test_yaml_available_flag():
-    """Test that YAML_AVAILABLE flag is set correctly"""
+    """Test that YAML_AVAILABLE flag is set correctly."""
     from src.loaders import YAML_AVAILABLE
 
     try:

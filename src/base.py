@@ -1,7 +1,29 @@
+"""
+Configuration management base module.
+
+This module provides a generic framework for loading, parsing, and validating
+configuration files of different formats (JSON, YAML). It handles the conversion
+of configuration data to strongly typed dataclass instances, with support for
+nested dataclasses and complex type validation.
+
+The module includes:
+- ConfigBase class: The main class for loading and validating configuration
+- Type validation utilities
+- Support for different configuration file formats
+
+Typical usage:
+    @config_class(file_name="database")
+    class DatabaseConfig:
+        host: str
+        port: int = 5432
+
+    config = ConfigBase.load(DatabaseConfig)
+"""
 import dataclasses
 import os
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Type, TypeVar, Generic, ClassVar, get_args, Iterable
+from typing import ClassVar, Generic, TypeVar, get_args
 
 from .exceptions import ConfigFileNotFoundError, ConfigValidationError
 from .field_type_checker import FieldTypeChecker
@@ -13,10 +35,12 @@ T = TypeVar('T')
 class ConfigBase(Generic[T]):
     """
     Base class for configuration management.
+
     Handles loading configuration from files and conversion to dataclasses.
     """
+
     _config_dir: ClassVar[str] = os.environ.get('CONFIG_DIR', '_config')
-    _loaders: ClassVar[dict[str, Type[ConfigLoader]]] = {
+    _loaders: ClassVar[dict[str, type[ConfigLoader]]] = {
         '.json': JSONConfigLoader,
         '.yaml': YAMLConfigLoader,
         '.yml': YAMLConfigLoader
@@ -24,23 +48,26 @@ class ConfigBase(Generic[T]):
 
     @classmethod
     def set_config_dir(cls, config_dir: str | Path) -> None:
-        """Set the base configuration directory path if default should not be used"""
+        """Set the base config directory path if default should not be used."""
         if isinstance(config_dir, Path):
             cls._config_dir = str(config_dir)
         else:
             cls._config_dir = config_dir
 
     @classmethod
-    def get_available_loaders(cls) -> dict[str, Type[ConfigLoader]]:
+    def get_available_loaders(cls) -> dict[str, type[ConfigLoader]]:
+        """Get available loaders for different file extensions."""
         return cls._loaders
 
     @classmethod
-    def add_loader(cls, ext: str, loader: Type[ConfigLoader]) -> None:
+    def add_loader(cls, ext: str, loader: type[ConfigLoader]) -> None:
+        """Add a loader for a specific file extension."""
         if ext not in cls._loaders:
             cls._loaders[ext] = loader
 
     @classmethod
     def remove_loader(cls, ext: str) -> None:
+        """Remove a loader for a specific file extension."""
         if ext in cls._loaders:
             del cls._loaders[ext]
 
@@ -50,12 +77,16 @@ class ConfigBase(Generic[T]):
         return Path(cls._config_dir)
 
     @classmethod
-    def load(cls, config_class: Type[T], config_data: dict | None = None) -> T:
+    def load(cls, config_class: type[T], config_data: dict | None = None) -> T:
         """
         Load configuration from file and convert to the specified dataclass.
 
         Args:
             config_class: The dataclass to convert configuration to
+            config_data: Optional dictionary with configuration data, if it
+                         is not provided, the configuration will be loaded
+                         from file. This is mostly needed for recursive
+                         loading of nested dataclasses.
 
         Returns:
             An instance of the specified dataclass with loaded configuration
@@ -71,19 +102,22 @@ class ConfigBase(Generic[T]):
         # Filter config_data to only include fields defined in the dataclass
         fields = {f.name: f.type for f in dataclasses.fields(config_class)}
         field_names = fields.keys()
-        filtered_data = {k: v for k, v in config_data.items() if k in field_names}
+        filtered_data = {k: v for k, v in config_data.items()
+                         if k in field_names}
 
         data = cls.__load_nested_dataclasses(fields, filtered_data)
         try:
             FieldTypeChecker.check_types(fields, filtered_data)
         except TypeError as exc:
-            raise ConfigValidationError(f"Configuration validation failed: {exc}") from exc
+            raise ConfigValidationError(f"Configuration validation failed: "
+                                        f"{exc}") from exc
 
         # Create an instance of the dataclass
         return config_class(**data)
 
     @classmethod
     def __read_config_data_from_file(cls, config_class):
+        """Read configuration data from file and return as a dictionary."""
         file_name = cls._get_config_file_name(config_class)
         config_file_path = cls._get_config_file_path(file_name)
         loader = cls._get_loader(config_file_path)
@@ -93,16 +127,18 @@ class ConfigBase(Generic[T]):
         return config_data
 
     @classmethod
-    def __load_nested_dataclasses(cls, fields: dict[str, Type], data: dict) -> dict:
+    def __load_nested_dataclasses(cls, fields: dict[str, type], data: dict) -> dict:
+        """Recursively load nested dataclasses."""
         for key, value in data.items():
             field_type = fields[key]
             if dataclasses.is_dataclass(field_type):
                 if isinstance(value, dict):
                     data[key] = cls.load(field_type, value)
                 elif value is None:
-                    # Try to create a new (empty) instance of nested dataclass if value is None
+                    # Try to create a new (empty) instance of nested dataclass
+                    # if value is None.
                     # This only works if the nested dataclass has no required arguments,
-                    # otherwise the value will be None
+                    # otherwise the value will remain None
                     try:
                         data[key] = field_type()
                     except TypeError:
@@ -119,19 +155,18 @@ class ConfigBase(Generic[T]):
 
     @classmethod
     def _get_loader(cls, file_name):
-        """ Determine loader from file extension """
+        """Determine loader from file extension."""
         ext = Path(file_name).suffix
 
         if ext not in cls._loaders:
-            raise ValueError(f"Unsupported file extension: {ext}. Supported: {list(cls._loaders.keys())}")
+            raise ValueError(f"Unsupported file extension: {ext}. Supported: "
+                             f"{list(cls._loaders.keys())}")
 
         return cls._loaders[ext]()
 
     @classmethod
     def _get_config_file_path(cls, file_name: str) -> Path:
-        """ Get full path to config file """
-
-
+        """Get full path to config file."""
         config_file_path = cls.get_config_path() / file_name
 
         # If file_name does not have a suffix, iterate over all
@@ -143,15 +178,17 @@ class ConfigBase(Generic[T]):
                     return config_file_path
 
         if not config_file_path.exists():
-            raise ConfigFileNotFoundError(f"Configuration file not found: {config_file_path}")
+            raise ConfigFileNotFoundError(f"Configuration file not found: "
+                                          f"{config_file_path}")
 
         return config_file_path
 
     @classmethod
-    def _get_config_file_name(cls, config_class: Type) -> str:
-        """ Get file name from config class"""
+    def _get_config_file_name(cls, config_class: type) -> str:
+        """Get file name from config class."""
         if hasattr(config_class, '_config_file_name'):
             file_name = config_class._config_file_name
         else:
-            raise ValueError(f"{config_class.__name__} must have a _config_file_name attribute")
+            raise ValueError(f"{config_class.__name__} must have a "
+                             f"_config_file_name attribute")
         return file_name

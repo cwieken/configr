@@ -10,7 +10,7 @@ from src.exceptions import ConfigFileNotFoundError
 
 @pytest.fixture
 def mock_loaders():
-    """Mock the ConfigBase.get_available_loaders method"""
+    """Mock the ConfigBase.get_available_loaders method."""
     with patch.object(ConfigBase, 'get_available_loaders', return_value={
         '.json': 'JSONConfigLoader',
         '.yaml': 'YAMLConfigLoader',
@@ -20,7 +20,7 @@ def mock_loaders():
 
 
 def test_config_class_basic_usage(mock_loaders):
-    """Test basic usage of config_class decorator without arguments"""
+    """Test basic usage of config_class decorator without arguments."""
 
     @config_class
     class TestConfig:
@@ -36,7 +36,7 @@ def test_config_class_basic_usage(mock_loaders):
 
 
 def test_config_class_with_file_name(mock_loaders):
-    """Test config_class decorator with custom file name"""
+    """Test config_class decorator with custom file name."""
 
     @config_class(file_name="custom_config.json")
     class TestConfig:
@@ -48,7 +48,7 @@ def test_config_class_with_file_name(mock_loaders):
 
 
 def test_config_class_with_yaml_extension(mock_loaders):
-    """Test config_class decorator with YAML file extension"""
+    """Test config_class decorator with YAML file extension."""
 
     @config_class(file_name="config.yaml")
     class TestConfig:
@@ -57,8 +57,9 @@ def test_config_class_with_yaml_extension(mock_loaders):
 
     assert TestConfig._config_file_name == "config.yaml"
 
+
 def test_config_class_with_complex_name(mock_loaders):
-    """Test config_class decorator with a complex class name"""
+    """Test config_class decorator with a complex class name."""
 
     @config_class
     class APIServiceConfig:
@@ -70,7 +71,7 @@ def test_config_class_with_complex_name(mock_loaders):
 
 
 def test_config_class_without_extension(mock_loaders):
-    """Test config_class decorator with file name without extension"""
+    """Test config_class decorator with file name without extension."""
 
     @config_class(file_name="config_without_extension")
     class TestConfig:
@@ -82,7 +83,7 @@ def test_config_class_without_extension(mock_loaders):
 
 
 def test_config_class_with_unsupported_extension(mock_loaders):
-    """Test config_class decorator with unsupported file extension"""
+    """Test config_class decorator with unsupported file extension."""
 
     @config_class(file_name="config.txt")
     class TestConfig:
