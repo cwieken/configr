@@ -56,11 +56,11 @@ Create a configuration file in `_config/database.json`:
 
 ## Documentation
 
-For complete documentation, visit [our documentation site](https://yourusername.github.io/configr/).
+For complete documentation, visit [our documentation site](https://cwieken.github.io/configr/).
 
-- [Getting Started](https://yourusername.github.io/configr/getting-started/)
-- [API Reference](https://yourusername.github.io/configr/api/config-base/)
-- [Examples](https://yourusername.github.io/configr/examples/)
+- [Getting Started](https://cwieken.github.io/configr/getting-started/)
+- [API Reference](https://cwieken.github.io/configr/api/config-base/)
+- [Examples](https://cwieken.github.io/configr/examples/)
 
 ## Contributing
 
