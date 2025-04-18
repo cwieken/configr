@@ -1,9 +1,8 @@
 import dataclasses
 import json
-import os
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 import yaml

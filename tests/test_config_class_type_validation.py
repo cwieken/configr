@@ -10,7 +10,7 @@ from src.exceptions import ConfigValidationError
 
 
 @dataclasses.dataclass
-class TestTypeConfig:
+class ConfigClassTypeTest:
     """Test config class with various typed fields"""
     _config_file_name = "test_config.json"
 
@@ -64,7 +64,7 @@ def config_dir():
 
 def create_config_file(config_dir, data):
     """Helper to create a config file with the given data"""
-    config_path = Path(config_dir) / TestTypeConfig._config_file_name
+    config_path = Path(config_dir) / ConfigClassTypeTest._config_file_name
     with open(config_path, 'w') as f:
         json.dump(data, f)
 
@@ -91,7 +91,7 @@ def test_valid_types(config_dir):
     create_config_file(config_dir, config_data)
 
     # This should not raise any exceptions
-    config = ConfigBase.load(TestTypeConfig)
+    config = ConfigBase.load(ConfigClassTypeTest)
 
     # Verify the values
     assert config.int_field == 42
@@ -135,7 +135,7 @@ def test_optional_none_values(config_dir):
     create_config_file(config_dir, config_data)
 
     # This should not raise any exceptions
-    config = ConfigBase.load(TestTypeConfig)
+    config = ConfigBase.load(ConfigClassTypeTest)
 
     assert config.optional_int is None
     assert config.optional_str is None
@@ -161,7 +161,7 @@ def test_union_types_int(config_dir):
     create_config_file(config_dir, config_data)
 
     # This should not raise any exceptions
-    config = ConfigBase.load(TestTypeConfig)
+    config = ConfigBase.load(ConfigClassTypeTest)
 
     assert config.union_int_str == 5
     assert isinstance(config.union_int_str, int)
@@ -186,7 +186,7 @@ def test_union_types_str(config_dir):
     create_config_file(config_dir, config_data)
 
     # This should not raise any exceptions
-    config = ConfigBase.load(TestTypeConfig)
+    config = ConfigBase.load(ConfigClassTypeTest)
 
     assert config.union_int_str == "test"
     assert isinstance(config.union_int_str, str)
@@ -221,7 +221,7 @@ def test_any_field_types(config_dir):
         create_config_file(config_dir, config_data)
 
         # This should not raise any exceptions
-        config = ConfigBase.load(TestTypeConfig)
+        config = ConfigBase.load(ConfigClassTypeTest)
         assert config.any_field == test_value
 
 def test_union_wrong_type(config_dir):
@@ -245,7 +245,7 @@ def test_union_wrong_type(config_dir):
 
     # This is expected to raise a ConfigValidationError
     with pytest.raises(ConfigValidationError) as exc_info:
-        ConfigBase.load(TestTypeConfig)
+        ConfigBase.load(ConfigClassTypeTest)
 
     # Check if the exception message matches the expected message
     assert str(exc_info.value) == "Configuration validation failed: Value for 'union_int_str' doesn't match any type in <class 'int'>, <class 'str'>, got <class 'float'>"
@@ -271,7 +271,7 @@ def test_list_wrong_type(config_dir):
 
     # This is expected to raise a ConfigValidationError
     with pytest.raises(ConfigValidationError) as exc_info:
-        ConfigBase.load(TestTypeConfig)
+        ConfigBase.load(ConfigClassTypeTest)
 
     # Check if the exception message matches the expected message
     assert str(exc_info.value) == "Configuration validation failed: Element 2 of list_of_ints: Expected list_of_ints to be of type <class 'int'>, got <class 'float'>"
@@ -298,7 +298,7 @@ def test_dict_wrong_value_type(config_dir):
 
     # This is expected to raise a ConfigValidationError
     with pytest.raises(ConfigValidationError) as exc_info:
-        ConfigBase.load(TestTypeConfig)
+        ConfigBase.load(ConfigClassTypeTest)
 
     # Check if the exception message matches the expected message
     assert str(exc_info.value) == "Configuration validation failed: Value a of dict_of_str_int: Expected dict_of_str_int to be of type <class 'int'>, got <class 'str'>"
@@ -324,7 +324,7 @@ def test_list_of_dict_wrong_type(config_dir):
 
     # This is expected to raise a ConfigValidationError
     with pytest.raises(ConfigValidationError) as exc_info:
-        ConfigBase.load(TestTypeConfig)
+        ConfigBase.load(ConfigClassTypeTest)
 
     # Check if the exception message matches the expected message
     assert str(exc_info.value) == "Configuration validation failed: Element 0 of list_of_dicts: Value 1 of list_of_dicts: Expected list_of_dicts to be of type <class 'int'>, got <class 'str'>"
@@ -350,7 +350,7 @@ def test_list_of_list_wrong_type(config_dir):
 
     # This is expected to raise a ConfigValidationError
     with pytest.raises(ConfigValidationError) as exc_info:
-        ConfigBase.load(TestTypeConfig)
+        ConfigBase.load(ConfigClassTypeTest)
 
     # Check if the exception message matches the expected message
     assert str(exc_info.value) == "Configuration validation failed: Element 1 of list_of_list: Element 0 of list_of_list: Expected list_of_list to be of type <class 'float'>, got <class 'int'>"
@@ -377,7 +377,7 @@ def test_set_wrong_type(config_dir):
 
     # This is expected to raise a ConfigValidationError
     with pytest.raises(ConfigValidationError) as exc_info:
-        ConfigBase.load(TestTypeConfig)
+        ConfigBase.load(ConfigClassTypeTest)
 
     # Check if the exception message matches the expected message
     assert str(exc_info.value) == "Configuration validation failed: Element 0 of set_of_strs: Expected set_of_strs to be of type <class 'str'>, got <class 'int'>"
@@ -403,7 +403,7 @@ def test_tuple_fixed_length_wrong_type(config_dir):
     create_config_file(config_dir, config_data)
 
     with pytest.raises(ConfigValidationError) as exc_info:
-        ConfigBase.load(TestTypeConfig)
+        ConfigBase.load(ConfigClassTypeTest)
 
     # Check if the exception message matches the expected message
     assert str(exc_info.value) == "Configuration validation failed: Element 2 of tuple_fixed: Expected tuple_fixed to be of type <class 'bool'>, got <class 'int'>"
@@ -429,7 +429,7 @@ def test_tuple_fixed_incorrect_length(config_dir):
     create_config_file(config_dir, config_data)
 
     with pytest.raises(ConfigValidationError) as exc_info:
-        ConfigBase.load(TestTypeConfig)
+        ConfigBase.load(ConfigClassTypeTest)
 
     # Check if the exception message matches the expected message
     assert str(exc_info.value) == "Configuration validation failed: Expected tuple_fixed to be of length 3, but is 2"

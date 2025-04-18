@@ -12,6 +12,10 @@ Configr simplifies configuration management by leveraging Python's dataclasses a
 - **Extendable**: Easily add support for custom configuration formats
 - **Simple API**: Convenient decorator-based approach for defining configuration classes
 
+## Requirements
+- Python 3.10 or higher
+
+
 ## Installation
 
 ```bash
