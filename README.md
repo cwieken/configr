@@ -22,10 +22,10 @@ Configr simplifies configuration management by leveraging Python's dataclasses a
 ## Installation
 
 ```bash
-pip install configr
+pip install py-configr
 
 # For YAML support
-pip install configr[yaml]
+pip install py-configr[yaml]
 ```
 
 ## Quick Start

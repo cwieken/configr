@@ -7,13 +7,13 @@ This guide will help you quickly set up and start using Configr in your projects
 Install Configr using pip:
 
 ```bash
-pip install configr
+pip install py-configr
 ```
 
 If you want to use YAML configuration files, you'll need to install with the YAML extra:
 
 ```bash
-pip install configr[yaml]
+pip install py-configr[yaml]
 ```
 
 ## Basic Setup

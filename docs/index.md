@@ -56,13 +56,13 @@ With a JSON file at `_config/database.json`:
 Install Configr using pip:
 
 ```bash
-pip install configr
+pip install py-configr
 ```
 
 For YAML support, install with the YAML extra:
 
 ```bash
-pip install configr[yaml]
+pip install py-configr[yaml]
 ```
 
 ## Why Choose Configr?
