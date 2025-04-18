@@ -7,10 +7,10 @@ from unittest.mock import MagicMock
 import pytest
 import yaml
 
-from src.base import ConfigBase
-from src.config_class import config_class
-from src.exceptions import ConfigFileNotFoundError
-from src.loaders import JSONConfigLoader, YAMLConfigLoader
+from configr.base import ConfigBase
+from configr.config_class import config_class
+from configr.exceptions import ConfigFileNotFoundError
+from configr.loaders import JSONConfigLoader, YAMLConfigLoader
 
 
 @pytest.fixture
@@ -159,7 +159,7 @@ def test_config_class_decorator_without_extension(config_dir):
 
 
 def test_yml_extension_loading(config_dir):
-    """Test loading from src.yml extension."""
+    """Test loading from configr.yml extension."""
 
     @config_class(file_name="logging_config.yml")
     class LoggingConfig:

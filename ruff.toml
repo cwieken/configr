@@ -62,7 +62,7 @@ convention = "google"
 [lint.isort]
 # Configure import sorting
 combine-as-imports = true
-known-first-party = ["configr", "src"]
+known-first-party = ["configr"]
 
 [lint.mccabe]
 # Maximum complexity allowed

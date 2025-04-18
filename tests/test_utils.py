@@ -1,4 +1,4 @@
-from src.utils import to_snake_case
+from configr.utils import to_snake_case
 
 
 def test_camel_case_to_snake_case():

@@ -2,8 +2,8 @@
 .idea/
 docker-compose.yaml
 Dockerfile
-src/config/*.json
-!src/config/*.json.sample
+configr/config/*.json
+!configr/config/*.json.sample
 .aiignore
 
 # macOS specific files

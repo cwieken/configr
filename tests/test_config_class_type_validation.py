@@ -6,8 +6,8 @@ from typing import Any, Optional, Union
 
 import pytest
 
-from src.base import ConfigBase
-from src.exceptions import ConfigValidationError
+from configr.base import ConfigBase
+from configr.exceptions import ConfigValidationError
 
 
 @dataclasses.dataclass

@@ -3,9 +3,9 @@ from unittest.mock import patch
 
 import pytest
 
-from src.base import ConfigBase
-from src.config_class import config_class
-from src.exceptions import ConfigFileNotFoundError
+from configr.base import ConfigBase
+from configr.config_class import config_class
+from configr.exceptions import ConfigFileNotFoundError
 
 
 @pytest.fixture
