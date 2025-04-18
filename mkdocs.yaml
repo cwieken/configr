@@ -6,6 +6,8 @@ site_description: A flexible, type-safe configuration management library for Pyt
 
 theme:
   name: material
+  logo: assets/logo.svg
+  favicon: assets/favicon.svg
   palette:
     primary: indigo
     accent: indigo
