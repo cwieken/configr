@@ -31,7 +31,7 @@ class FieldTypeChecker:
             if field_type is Any or field_type is any:
                 continue
 
-            origin_type, origin_args = get_origin(field_type), get_args(field_type)
+            origin_type = get_origin(field_type)
             if origin_type is not None:
                 # Handle other generic types
                 cls.__check_generic_types(field_name, field_type, value)

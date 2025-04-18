@@ -1,9 +1,10 @@
-import pytest
 import dataclasses
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from src.config_class import config_class
+import pytest
+
 from src.base import ConfigBase
+from src.config_class import config_class
 from src.exceptions import ConfigFileNotFoundError
 
 

@@ -1,11 +1,12 @@
-import pytest
-import tempfile
-import json
 import dataclasses
+import json
+import tempfile
 from pathlib import Path
 from typing import List, Dict, Optional, Union, Set, Tuple, Any
 
-from src.config_class import ConfigBase
+import pytest
+
+from src.base import ConfigBase
 from src.exceptions import ConfigValidationError
 
 

@@ -1,9 +1,10 @@
-import pytest
 import dataclasses
 from unittest.mock import patch, MagicMock
 
-from src.config_class import config_class
+import pytest
+
 from src.base import ConfigBase
+from src.config_class import config_class
 
 
 def test_nested_dataclass_loading():
@@ -197,7 +198,7 @@ def test_nested_dataclass_with_list():
         with patch.object(ConfigBase, '_get_config_file_path', return_value="mock_path"):
             # This should fail because the __load_nested_dataclasses method
             # doesn't check for List[dataclass] types
-            config = ConfigBase.load(CollectionConfig)
+            ConfigBase.load(CollectionConfig)
 
 
 def test_nested_dataclass_with_type_checking():

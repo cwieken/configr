@@ -1,7 +1,5 @@
 import dataclasses
-from pathlib import Path
 
-from .base import ConfigBase
 from .utils import to_snake_case
 
 

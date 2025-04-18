@@ -1,8 +1,9 @@
 import json
-import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
+import pytest
 
 from src.loaders import ConfigLoader, JSONConfigLoader, YAMLConfigLoader
 
@@ -106,7 +107,6 @@ def test_json_config_loader_invalid_json(invalid_json_file):
 def test_yaml_config_loader(yaml_config_file):
     """Test loading a valid YAML configuration file"""
     try:
-        import yaml
         loader = YAMLConfigLoader()
         config = loader.load(yaml_config_file)
 
@@ -122,7 +122,6 @@ def test_yaml_config_loader(yaml_config_file):
 def test_yaml_config_loader_file_not_found():
     """Test YAMLConfigLoader raises an error when file is not found"""
     try:
-        import yaml
         loader = YAMLConfigLoader()
         with pytest.raises(FileNotFoundError):
             loader.load(Path("nonexistent_file.yaml"))
@@ -156,7 +155,6 @@ def test_yaml_available_flag():
     from src.loaders import YAML_AVAILABLE
 
     try:
-        import yaml
         assert YAML_AVAILABLE is True
     except ImportError:
         assert YAML_AVAILABLE is False
