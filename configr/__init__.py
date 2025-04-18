@@ -34,3 +34,19 @@ Typical usage:
         config.password
     )
 """
+import sys
+# Import the main classes and functions to expose them at the package level
+from .base import ConfigBase
+from .config_class import config_class
+from .exceptions import ConfigFileNotFoundError, ConfigValidationError
+
+# Define what should be accessible when someone does 'from configr import *'
+__all__ = [
+    'ConfigBase',
+    'config_class',
+    'ConfigFileNotFoundError',
+    'ConfigValidationError',
+]
+
+if sys.version_info < (3, 10):
+    raise RuntimeError("This package requires Python 3.10 or newer")

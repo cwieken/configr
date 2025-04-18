@@ -1,2 +1,4 @@
 -r requirements-tests.txt
-tox
+setuptools>=78.1.0
+tox>=4.25
+wheel>=0.45.0
