@@ -32,18 +32,19 @@ def test_nested_dataclass_loading():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path',
-                          return_value="mock_path"):
-            # Load the parent config
-            config = ConfigBase.load(ParentConfig)
+        # Mock the config file path to avoid file system dependency
+        ConfigBase.set_config_dir('mock_path')
 
-            # Verify that the parent config was loaded correctly
-            assert config.title == "Parent Title"
+        # Load the parent config
+        config = ConfigBase.load(ParentConfig)
 
-            # Verify that the child config was loaded correctly
-            assert isinstance(config.child, ChildConfig)
-            assert config.child.name == "Child Name"
-            assert config.child.value == 42
+        # Verify that the parent config was loaded correctly
+        assert config.title == "Parent Title"
+
+        # Verify that the child config was loaded correctly
+        assert isinstance(config.child, ChildConfig)
+        assert config.child.name == "Child Name"
+        assert config.child.value == 42
 
 
 def test_deeply_nested_dataclass_loading():
@@ -78,23 +79,24 @@ def test_deeply_nested_dataclass_loading():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path',
-                          return_value="mock_path"):
-            # Load the parent config
-            config = ConfigBase.load(ParentConfig)
+        # Mock the config file path to avoid file system dependency
+        ConfigBase.set_config_dir('mock_path')
 
-            # Verify that the parent config was loaded correctly
-            assert config.title == "Parent Title"
+        # Load the parent config
+        config = ConfigBase.load(ParentConfig)
 
-            # Verify that the child config was loaded correctly
-            assert isinstance(config.child, ChildConfig)
-            assert config.child.name == "Child Name"
+        # Verify that the parent config was loaded correctly
+        assert config.title == "Parent Title"
 
-            # Verify that the grandchild config was loaded correctly
-            assert isinstance(config.child.grandchild, GrandchildConfig)
-            assert config.child.grandchild.id == 123
-            assert config.child.grandchild.description == ("Grandchild "
-                                                           "Description")
+        # Verify that the child config was loaded correctly
+        assert isinstance(config.child, ChildConfig)
+        assert config.child.name == "Child Name"
+
+        # Verify that the grandchild config was loaded correctly
+        assert isinstance(config.child.grandchild, GrandchildConfig)
+        assert config.child.grandchild.id == 123
+        assert config.child.grandchild.description == ("Grandchild "
+                                                       "Description")
 
 
 def test_nested_dataclass_with_missing_values():
@@ -121,18 +123,19 @@ def test_nested_dataclass_with_missing_values():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path',
-                          return_value="mock_path"):
-            # Load the parent config
-            config = ConfigBase.load(ParentConfig)
+        # Mock the config file path to avoid file system dependency
+        ConfigBase.set_config_dir('mock_path')
 
-            # Verify that the parent config was loaded correctly
-            assert config.title == "Parent Title"
+        # Load the parent config
+        config = ConfigBase.load(ParentConfig)
 
-            # Verify that the child config was loaded with default value
-            assert isinstance(config.child, ChildConfig)
-            assert config.child.name == "Child Name"
-            assert config.child.value == 0
+        # Verify that the parent config was loaded correctly
+        assert config.title == "Parent Title"
+
+        # Verify that the child config was loaded with default value
+        assert isinstance(config.child, ChildConfig)
+        assert config.child.name == "Child Name"
+        assert config.child.value == 0
 
 
 def test_nested_dataclass_with_null_value():
@@ -156,18 +159,19 @@ def test_nested_dataclass_with_null_value():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path',
-                          return_value="mock_path"):
-            # Load the parent config
-            config = ConfigBase.load(ParentConfig)
+        # Mock the config file path to avoid file system dependency
+        ConfigBase.set_config_dir('mock_path')
 
-            # Verify that the parent config was loaded correctly
-            assert config.title == "Parent Title"
+        # Load the parent config
+        config = ConfigBase.load(ParentConfig)
 
-            # Verify that the child config was initialized with defaults
-            assert isinstance(config.child, DefaultInitChildConfig)
-            assert config.child.name == "Default Name"
-            assert config.child.value == 0
+        # Verify that the parent config was loaded correctly
+        assert config.title == "Parent Title"
+
+        # Verify that the child config was initialized with defaults
+        assert isinstance(config.child, DefaultInitChildConfig)
+        assert config.child.name == "Default Name"
+        assert config.child.value == 0
 
 
 def test_nested_dataclass_with_list():
@@ -197,9 +201,10 @@ def test_nested_dataclass_with_list():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path',
-                          return_value="mock_path"):
-            ConfigBase.load(CollectionConfig)
+        # Mock the config file path to avoid file system dependency
+        ConfigBase.set_config_dir('mock_path')
+
+        ConfigBase.load(CollectionConfig)
 
 
 def test_nested_dataclass_with_type_checking():
@@ -226,12 +231,13 @@ def test_nested_dataclass_with_type_checking():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path',
-                          return_value="mock_path"):
-            # Should raise ConfigValidationError due to type mismatch
-            from configr.exceptions import ConfigValidationError
-            with pytest.raises(ConfigValidationError):
-                ConfigBase.load(ParentConfig)
+        # Mock the config file path to avoid file system dependency
+        ConfigBase.set_config_dir('mock_path')
+
+        # Should raise ConfigValidationError due to type mismatch
+        from configr.exceptions import ConfigValidationError
+        with pytest.raises(ConfigValidationError):
+            ConfigBase.load(ParentConfig)
 
 
 def test_nested_dataclass_with_generic_types():
@@ -265,16 +271,17 @@ def test_nested_dataclass_with_generic_types():
     }
 
     with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        with patch.object(ConfigBase, '_get_config_file_path',
-                          return_value="mock_path"):
-            # Load the config
-            config = ConfigBase.load(AppConfig)
+        # Mock the config file path to avoid file system dependency
+        ConfigBase.set_config_dir('mock_path')
 
-            # Verify the config was loaded correctly
-            assert config.name == "My App"
-            assert isinstance(config.metadata, MetadataConfig)
-            assert config.metadata.tags["env"] == "production"
-            assert config.metadata.tags["region"] == "us-west"
-            assert config.metadata.settings["timeout"] == 30
-            assert config.metadata.settings["retry"] is True
-            assert config.metadata.settings["debug"] is False
+        # Load the config
+        config = ConfigBase.load(AppConfig)
+
+        # Verify the config was loaded correctly
+        assert config.name == "My App"
+        assert isinstance(config.metadata, MetadataConfig)
+        assert config.metadata.tags["env"] == "production"
+        assert config.metadata.tags["region"] == "us-west"
+        assert config.metadata.settings["timeout"] == 30
+        assert config.metadata.settings["retry"] is True
+        assert config.metadata.settings["debug"] is False

@@ -2,28 +2,34 @@
 
 A flexible, type-safe configuration management library for Python.
 
-## 
+##  
+
 !!! note
 
     The API documentation and usage examples in this project were initially generated with the assistance of Claude, an AI assistant. All content has been reviewed and edited by the project maintainers to ensure accuracy and clarity.
 
 ## Overview
 
-Configr simplifies configuration management by leveraging Python's dataclasses and type hints to provide a robust, type-safe approach to application configuration. 
-It seamlessly converts configuration files to strongly-typed Python classes, making configuration both safer and easier to work with.
+Configr simplifies configuration management by leveraging Python's dataclasses and type hints to provide a robust,
+type-safe approach to application configuration.
+It seamlessly converts configuration files to strongly-typed Python classes, making configuration both safer and easier
+to work with.
 
 ## Key Features
 
 - **Type Safety**: Leverage Python's type hints for configuration validation
 - **Dataclass Integration**: Seamlessly map configuration files to Python dataclasses
 - **Multiple Format Support**: Load configuration from JSON and YAML
-- **Extendable**: Easily add support for custom configuration formats, such as TOML or XML
+- **Extendable**: Easily add support for custom configuration formats through the loader system, such as TOML or XML
+- **Nested Configuration**: Support for complex nested dataclass structures
+- **Validation**: Strict type checking for all configuration values
 - **Simple API**: Convenient decorator-based approach for defining configuration classes
 
 ## Quick Example
 
 ```python
 from configr import config_class, ConfigBase
+
 
 @config_class(file_name="database.json")
 class DatabaseConfig:
@@ -32,6 +38,7 @@ class DatabaseConfig:
     username: str
     password: str
     database: str
+
 
 # Load configuration
 db_config = ConfigBase.load(DatabaseConfig)
@@ -72,6 +79,7 @@ pip install py-configr[yaml]
 - **Clean Codebase**: Separate configuration concerns from application logic
 - **Flexibility**: Support for different file formats with a consistent API
 - **Simplicity**: Define your configuration structure once as a dataclass
+- **Extensibility**: Easily extend with custom loaders for different configuration sources
 
 ## Next Steps
 

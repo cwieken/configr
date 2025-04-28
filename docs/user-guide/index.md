@@ -1,6 +1,7 @@
 # User Guide Overview
 
-Welcome to the Configr User Guide. This guide provides comprehensive information about using the Configr library effectively in your projects.
+Welcome to the Configr User Guide. This guide provides comprehensive information about using the Configr library
+effectively in your projects.
 
 ## Key Concepts
 
@@ -8,15 +9,18 @@ Configr is built around a few core concepts:
 
 ### Configuration Classes
 
-Configuration classes define the structure of your configuration using Python dataclasses. They specify what configuration values are available, their types, and default values.
+Configuration classes define the structure of your configuration using Python dataclasses. They specify what
+configuration values are available, their types, and default values.
 
 ### Configuration Loading
 
-Configr provides mechanisms to load configuration data from files and convert it to your configuration classes, ensuring type safety and validation.
+Configr provides mechanisms to load configuration data from files and convert it to your configuration classes, ensuring
+type safety and validation.
 
 ### File Formats
 
-The library supports multiple file formats, including JSON and YAML, and can be extended to support additional formats through custom loaders.
+The library supports multiple file formats, including JSON and YAML, and can be extended to support additional formats
+through custom loaders.
 
 ## Structure
 
@@ -38,6 +42,7 @@ Create a central module for all your configuration classes:
 # config.py
 from configr import config_class, ConfigBase
 
+
 @config_class
 class DatabaseConfig:
     host: str = "localhost"
@@ -46,11 +51,13 @@ class DatabaseConfig:
     password: str
     database: str
 
+
 @config_class
 class RedisConfig:
     host: str = "localhost"
     port: int = 6379
     db: int = 0
+
 
 # Load all configurations at once
 def load_all():
@@ -67,7 +74,10 @@ Use different files for different environments:
 ```python
 import os
 
-@config_class(file_name=f"database.{os.environ.get('ENV', 'dev')}.json")
+ENV = os.environ.get("ENV", "development")
+
+
+@config_class(file_name=f"database.{ENV}.json")
 class DatabaseConfig:
     username: str
     password: str
@@ -83,12 +93,13 @@ Add validation logic to your configuration classes:
 ```python
 from configr import config_class, ConfigValidationError
 
+
 @config_class
 class ServerConfig:
     host: str
     port: int
     workers: int
-    
+
     def __post_init__(self):
         if self.port < 1024 or self.port > 65535:
             raise ConfigValidationError(f"Invalid port: {self.port}")

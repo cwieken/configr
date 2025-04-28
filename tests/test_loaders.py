@@ -5,7 +5,9 @@ from unittest.mock import patch
 
 import pytest
 
-from configr.loaders import ConfigLoader, JSONConfigLoader, YAMLConfigLoader
+from configr.loaders.base import ConfigLoader
+from configr.loaders.json import JSONConfigLoader
+from configr.loaders.yaml import YAMLConfigLoader
 
 
 @pytest.fixture
@@ -140,7 +142,7 @@ def test_yaml_config_loader_invalid_yaml(invalid_yaml_file):
         pytest.skip("PyYAML not installed, skipping YAML tests")
 
 
-@patch('configr.loaders.YAML_AVAILABLE', False)
+@patch('configr.loaders.yaml.YAML_AVAILABLE', False)
 def test_yaml_loader_without_yaml_module():
     """Test YAMLConfigLoader raises ImportError when PyYAML is not available."""
     loader = YAMLConfigLoader()

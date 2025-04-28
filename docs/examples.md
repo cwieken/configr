@@ -1,6 +1,7 @@
 # Examples
 
-This page provides practical examples of using Configr in different scenarios. Each example demonstrates key features and patterns to help you make the most of the library in your projects.
+This page provides practical examples of using Configr in different scenarios. Each example demonstrates key features
+and patterns to help you make the most of the library in your projects.
 
 ## Basic Configuration
 
@@ -12,6 +13,7 @@ This example shows a basic application configuration setup.
 # app_config.py
 from configr import config_class, ConfigBase
 
+
 @config_class(file_name="app_settings.json")
 class AppConfig:
     app_name: str
@@ -19,6 +21,7 @@ class AppConfig:
     debug: bool = False
     log_level: str = "INFO"
     max_connections: int = 100
+
 
 # Load the configuration
 app_config = ConfigBase.load(AppConfig)
@@ -30,6 +33,7 @@ print(f"Log level: {app_config.log_level}")
 ```
 
 **Configuration file (`_config/app_settings.json`):**
+
 ```json
 {
   "app_name": "MyApp",
@@ -50,6 +54,7 @@ This example demonstrates nested configuration structures.
 from configr import config_class, ConfigBase
 from dataclasses import dataclass, field
 
+
 @dataclass
 class DatabaseConfig:
     username: str
@@ -58,10 +63,11 @@ class DatabaseConfig:
     host: str = "localhost"
     port: int = 5432
     ssl_mode: str = "prefer"
-    
+
     def get_connection_string(self):
         """Generate a database connection string."""
         return f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}?sslmode={self.ssl_mode}"
+
 
 @dataclass
 class LoggingConfig:
@@ -71,6 +77,7 @@ class LoggingConfig:
     max_size: int = 10485760  # 10MB
     backup_count: int = 5
 
+
 @config_class(file_name="server_config.json")
 class ServerConfig:
     name: str
@@ -79,13 +86,14 @@ class ServerConfig:
     workers: int = 4
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     logging: LoggingConfig = None
-    
+
     def __post_init__(self):
         # Validation
         if self.port < 1024 or self.port > 65535:
             raise ValueError(f"Invalid port: {self.port}")
         if self.workers < 1:
             raise ValueError(f"Workers must be at least 1, got {self.workers}")
+
 
 # main.py
 from config import ServerConfig, ConfigBase
@@ -95,8 +103,8 @@ server_config = ConfigBase.load(ServerConfig)
 # Access nested configuration
 db_conn_string = server_config.database.get_connection_string()
 
-# If server_config.logging is None, it will create an instance of LoggingConfig 
-# with default values, so log level is set to INFO in that case.
+# If server_config.logging is None, it will try to create an instance of LoggingConfig
+# with default values if possible, so log level is set to INFO in that case.
 log_level = server_config.logging.level
 
 print(f"Server: {server_config.name} running on {server_config.host}:{server_config.port}")
@@ -105,6 +113,7 @@ print(f"Log level: {log_level}")
 ```
 
 **Configuration file (`_config/server_config.json`):**
+
 ```json
 {
   "name": "ProductionServer",
@@ -135,6 +144,7 @@ This example shows how to work with multiple configuration files for different c
 # configs.py
 from configr import config_class, ConfigBase
 
+
 @config_class(file_name="database.json")
 class DatabaseConfig:
     username: str
@@ -143,7 +153,8 @@ class DatabaseConfig:
     host: str = 'localhost'
     port: int = 5432
     max_connections: int = 100
-    
+
+
 @config_class(file_name="redis.json")
 class RedisConfig:
     host: str = "localhost"
@@ -151,13 +162,15 @@ class RedisConfig:
     db: int = 0
     password: str = None
     socket_timeout: int = 5
-    
+
+
 @config_class(file_name="app.json")
 class AppConfig:
     debug: bool = False
     log_level: str = "INFO"
     secret_key: str
     allowed_hosts: list[str] = None
+
 
 # Access specific configurations
 db_config = ConfigBase.load(DatabaseConfig)
@@ -172,6 +185,7 @@ print(f"App debug mode: {app_config.debug}")
 **Configuration files:**
 
 `_config/database.json`:
+
 ```json
 {
   "host": "db.example.com",
@@ -183,6 +197,7 @@ print(f"App debug mode: {app_config.debug}")
 ```
 
 `_config/redis.json`:
+
 ```json
 {
   "host": "redis.example.com",
@@ -191,12 +206,16 @@ print(f"App debug mode: {app_config.debug}")
 ```
 
 `_config/app.json`:
+
 ```json
 {
   "debug": false,
   "log_level": "WARNING",
   "secret_key": "very-secret-key-123",
-  "allowed_hosts": ["example.com", "www.example.com"]
+  "allowed_hosts": [
+    "example.com",
+    "www.example.com"
+  ]
 }
 ```
 
@@ -214,6 +233,7 @@ from configr import config_class, ConfigBase
 # Determine environment
 ENV = os.environ.get("APP_ENV", "development")
 
+
 @config_class(file_name=f"app.{ENV}.json")
 class AppConfig:
     debug: bool = ENV != "production"
@@ -225,7 +245,8 @@ class AppConfig:
 
 
 # app.py
-from config import get_config, ENV
+from config import AppConfig, ENV
+from configr import ConfigBase
 
 config = ConfigBase.load(AppConfig)
 print(f"Running in {ENV} environment")
@@ -237,17 +258,22 @@ print(f"Database URL: {config.database_url}")
 **Configuration files:**
 
 `_config/app.development.json`:
+
 ```json
 {
   "debug": true,
   "log_level": "DEBUG",
   "database_url": "postgresql://dev:dev@localhost/dev_db",
   "secret_key": "dev-secret-key",
-  "allowed_hosts": ["localhost", "127.0.0.1"]
+  "allowed_hosts": [
+    "localhost",
+    "127.0.0.1"
+  ]
 }
 ```
 
 `_config/app.production.json`:
+
 ```json
 {
   "debug": false,
@@ -255,7 +281,11 @@ print(f"Database URL: {config.database_url}")
   "database_url": "postgresql://user:pass@db.example.com/prod_db",
   "redis_url": "redis://redis.example.com:6379/0",
   "secret_key": "production-secret-key-very-secure",
-  "allowed_hosts": ["example.com", "www.example.com", "api.example.com"]
+  "allowed_hosts": [
+    "example.com",
+    "www.example.com",
+    "api.example.com"
+  ]
 }
 ```
 
@@ -269,7 +299,7 @@ This example shows how to configure a list of service endpoints.
 # services_config.py
 from configr import config_class, ConfigBase
 from dataclasses import dataclass
-from typing import List
+
 
 @dataclass
 class ServiceEndpoint:
@@ -279,18 +309,20 @@ class ServiceEndpoint:
     retries: int = 3
     api_key: str = None
 
+
 @config_class(file_name="services.json")
 class ServicesConfig:
     base_timeout: int = 60
     default_retries: int = 5
-    endpoints: List[ServiceEndpoint]
-    
+    endpoints: list[ServiceEndpoint]
+
     def get_endpoint(self, name):
         """Find an endpoint by name."""
         for endpoint in self.endpoints:
             if endpoint.name == name:
                 return endpoint
         return None
+
 
 # Load the configuration
 services_config = ConfigBase.load(ServicesConfig)
@@ -308,6 +340,7 @@ for endpoint in services_config.endpoints:
 ```
 
 **Configuration file (`_config/services.json`):**
+
 ```json
 {
   "base_timeout": 30,
@@ -335,27 +368,32 @@ for endpoint in services_config.endpoints:
 
 ## Custom Loaders
 
-### TOML Configuration Format
+### TOML Configuration loader
 
-This example demonstrates creating and using a custom loader for TOML files.
+This example demonstrates creating, registering and using a custom loader for TOML files.
 
 ```python
 # toml_loader.py
-from pathlib import Path
-from typing import Dict, Any
-from configr import ConfigLoader, ConfigBase
+from typing import Any, TypeVar
+from configr.loaders.base import FileConfigLoader
 
-class TOMLConfigLoader(ConfigLoader):
+T = TypeVar('T')
+
+
+class TOMLConfigLoader(FileConfigLoader):
     """Loader for TOML configuration files."""
+    ext: list[str] = ['.toml']  # Supported file extensions
 
-    def load(self, path: Path) -> Dict[str, Any]:
+    @classmethod
+    def load(cls, name: str, config_class: type[T] = None) -> dict[str, Any]:
         """Load TOML configuration from the specified path."""
         try:
             import toml
         except ImportError:
             raise ImportError("The 'toml' package is required for TOML support. Install with 'pip install toml'.")
-            
-        with open(path, 'r') as f:
+
+        config_file_path = cls._get_config_file_path(name)
+        with open(config_file_path) as f:
             return toml.load(f)
 
 
@@ -363,21 +401,24 @@ class TOMLConfigLoader(ConfigLoader):
 from configr import config_class, ConfigBase
 from toml_loader import TOMLConfigLoader
 
-# Register the TOML loader
-ConfigBase.add_loader('.toml', TOMLConfigLoader)
+# Register the custom loader
+ConfigBase.add_loader(TOMLConfigLoader)
 
+
+# Now you can use TOML files with your config classes
 @config_class(file_name="app_config.toml")
 class AppConfig:
     name: str
     version: str
     authors: list[str]
     debug: bool = False
-    
+
     class Dependencies:
         python: str
         requests: str
-        
+
     dependencies: Dependencies
+
 
 # Load TOML configuration
 app_config = ConfigBase.load(AppConfig)
@@ -387,6 +428,7 @@ print(f"Python version: {app_config.dependencies.python}")
 ```
 
 **Configuration file (`_config/app_config.toml`):**
+
 ```toml
 name = "MyTOMLApp"
 version = "0.1.0"
@@ -408,19 +450,21 @@ This example shows how to handle various configuration errors gracefully.
 # config.py
 from configr import config_class, ConfigBase, ConfigFileNotFoundError, ConfigValidationError
 
+
 @config_class(file_name="app_settings.json")
 class AppSettings:
     debug: bool = False
     log_level: str = "INFO"
     port: int = 8000
-    
+
     def __post_init__(self):
         valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if self.log_level not in valid_log_levels:
             raise ValueError(f"Invalid log level: {self.log_level}. Must be one of {valid_log_levels}")
-        
+
         if self.port < 1024 or self.port > 65535:
             raise ValueError(f"Invalid port: {self.port}. Must be between 1024 and 65535")
+
 
 def load_settings():
     """Load settings with robust error handling."""
@@ -433,15 +477,16 @@ def load_settings():
     except ConfigValidationError as e:
         print(f"Configuration validation failed: {e}")
         print("Please check your configuration file format and types")
-        raise 
+        raise
     except ValueError as e:
         print(f"Invalid configuration value: {e}")
         print("Please check your configuration settings")
-        raise 
+        raise
     except Exception as e:
         print(f"Unexpected error loading configuration: {e}")
         print("Using default settings as fallback")
         return AppSettings()
+
 
 # app.py
 from config import load_settings
@@ -466,10 +511,11 @@ This example demonstrates using Configr with a Flask web application.
 import os
 from configr import config_class, ConfigBase, ConfigFileNotFoundError
 from dataclasses import dataclass
-from typing import List, Dict, Any
+from typing import Any
 
 # Determine environment
 ENV = os.environ.get("FLASK_ENV", "development")
+
 
 @dataclass
 class DatabaseConfig:
@@ -478,11 +524,13 @@ class DatabaseConfig:
     pool_recycle: int = 3600
     pool_timeout: int = 30
 
+
 @dataclass
 class CacheConfig:
     type: str = "redis"
     url: str = "redis://localhost:6379/0"
     timeout: int = 300
+
 
 @config_class(file_name=f"flask_app.{ENV}.json")
 class FlaskConfig:
@@ -492,25 +540,25 @@ class FlaskConfig:
     testing: bool = ENV == "testing"
     host: str = "127.0.0.1"
     port: int = 5000
-    
+
     # Database settings
     database: DatabaseConfig = None
-    
+
     # Cache settings
     cache: CacheConfig = None
-    
+
     # CORS settings
-    cors_origins: List[str] = None
-    
+    cors_origins: list[str] = None
+
     # Other settings
     upload_folder: str = "/tmp/uploads"
     max_content_length: int = 16 * 1024 * 1024  # 16 MB
-    
+
     # Custom app settings
     app_name: str = "Flask App"
-    admin_emails: List[str] = None
+    admin_emails: list[str] = None
 
-    def to_flask_config(self) -> Dict[str, Any]:
+    def to_flask_config(self) -> dict[str, Any]:
         """Convert to a dictionary for Flask configuration."""
         # Extract top-level fields first
         config_dict = {
@@ -522,14 +570,15 @@ class FlaskConfig:
             "APP_NAME": self.app_name,
             "ADMIN_EMAILS": self.admin_emails or []
         }
-        
+
         # Add database settings
-        config_dict["SQLALCHEMY_DATABASE_URI"] = self.database.url
-        config_dict["SQLALCHEMY_POOL_SIZE"] = self.database.pool_size
-        config_dict["SQLALCHEMY_POOL_RECYCLE"] = self.database.pool_recycle
-        config_dict["SQLALCHEMY_POOL_TIMEOUT"] = self.database.pool_timeout
-        config_dict["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-        
+        if self.database:
+            config_dict["SQLALCHEMY_DATABASE_URI"] = self.database.url
+            config_dict["SQLALCHEMY_POOL_SIZE"] = self.database.pool_size
+            config_dict["SQLALCHEMY_POOL_RECYCLE"] = self.database.pool_recycle
+            config_dict["SQLALCHEMY_POOL_TIMEOUT"] = self.database.pool_timeout
+            config_dict["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
         # Add cache settings if present
         if self.cache:
             if self.cache.type == "redis":
@@ -538,12 +587,13 @@ class FlaskConfig:
             else:
                 config_dict["CACHE_TYPE"] = self.cache.type
             config_dict["CACHE_DEFAULT_TIMEOUT"] = self.cache.timeout
-        
+
         # Add CORS settings if present
         if self.cors_origins:
             config_dict["CORS_ORIGINS"] = self.cors_origins
-        
+
         return config_dict
+
 
 def get_flask_config():
     """Load and return Flask configuration."""
@@ -553,7 +603,7 @@ def get_flask_config():
     except ConfigFileNotFoundError:
         print(f"Configuration file for {ENV} environment not found.")
         print("Using default configuration (this is not recommended for production)")
-        
+
         # Default development config
         if ENV == "development":
             return FlaskConfig(
@@ -566,11 +616,12 @@ def get_flask_config():
             return FlaskConfig(
                 secret_key="test-secret-key",
                 testing=True,
-                database=DatabaseConfig(url="sqlite:///:memory:"),
+                database=DatabaseConfig(url="sqlite:///:memory:")
             )
-        # For production, we should not use defaults
+        # For production, do not use defaults
         else:
             raise
+
 
 # app.py
 from flask import Flask
@@ -583,15 +634,18 @@ config = get_flask_config()
 app = Flask(__name__)
 app.config.update(config.to_flask_config())
 
+
 @app.route('/')
 def index():
     return f"Welcome to {app.config['APP_NAME']}!"
+
 
 if __name__ == '__main__':
     app.run(host=config.host, port=config.port)
 ```
 
 **Configuration file (`_config/flask_app.development.json`):**
+
 ```json
 {
   "secret_key": "dev-secret-key-123",
@@ -605,15 +659,21 @@ if __name__ == '__main__':
     "type": "redis",
     "url": "redis://localhost:6379/0"
   },
-  "cors_origins": ["http://localhost:3000", "http://localhost:8080"],
+  "cors_origins": [
+    "http://localhost:3000",
+    "http://localhost:8080"
+  ],
   "app_name": "My Flask App (Dev)",
-  "admin_emails": ["admin@example.com", "dev@example.com"]
+  "admin_emails": [
+    "admin@example.com",
+    "dev@example.com"
+  ]
 }
 ```
 
 ## Advanced Features
 
-### Configuration with Immutable Dataclasses
+### Configuration with immutable (frozen) Dataclasses
 
 This example demonstrates using frozen dataclasses for immutable configuration.
 
@@ -621,7 +681,8 @@ This example demonstrates using frozen dataclasses for immutable configuration.
 # config.py
 from configr import config_class, ConfigBase
 from dataclasses import dataclass, field, FrozenInstanceError
-from typing import Dict, List, Optional
+from typing import Optional
+
 
 @dataclass(frozen=True)
 class LoggingConfig:
@@ -629,12 +690,14 @@ class LoggingConfig:
     file: Optional[str] = None
     format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
+
 @dataclass(frozen=True)
 class SecurityConfig:
     secret_key: str
     token_expiration: int = 3600  # seconds
-    allowed_hosts: List[str] = field(default_factory=list)
-    cors_origins: List[str] = field(default_factory=list)
+    allowed_hosts: list[str] = field(default_factory=list)
+    cors_origins: list[str] = field(default_factory=list)
+
 
 @config_class(file_name="immutable_config.json")
 @dataclass(frozen=True)
@@ -644,42 +707,44 @@ class AppConfig:
     debug: bool = False
     logging: LoggingConfig = None
     security: SecurityConfig = None
-    feature_flags: Dict[str, bool] = field(default_factory=dict)
-    
+    feature_flags: dict[str, bool] = field(default_factory=dict)
+
     def is_feature_enabled(self, feature_name: str) -> bool:
         """Check if a feature flag is enabled."""
         return self.feature_flags.get(feature_name, False)
 
+
 # Load the immutable configuration
 try:
     config = ConfigBase.load(AppConfig)
-    
+
     # Using the configuration
     print(f"App: {config.name} v{config.version}")
     print(f"Debug mode: {config.debug}")
-    
+
     if config.logging:
         print(f"Log level: {config.logging.level}")
-    
+
     if config.security:
         print(f"Token expiration: {config.security.token_expiration}s")
-    
+
     # Check feature flags
     print("Feature flags:")
     for feature, enabled in config.feature_flags.items():
         print(f"- {feature}: {'enabled' if enabled else 'disabled'}")
-    
+
     # Attempt to modify (will raise an error)
     try:
         config.debug = True  # This will raise FrozenInstanceError
     except FrozenInstanceError as e:
         print(f"Cannot modify immutable config: {e}")
-        
+
 except Exception as e:
     print(f"Error loading configuration: {e}")
 ```
 
 **Configuration file (`_config/immutable_config.json`):**
+
 ```json
 {
   "name": "ImmutableApp",
@@ -692,8 +757,13 @@ except Exception as e:
   "security": {
     "secret_key": "very-secret-key-123",
     "token_expiration": 7200,
-    "allowed_hosts": ["example.com", "api.example.com"],
-    "cors_origins": ["https://app.example.com"]
+    "allowed_hosts": [
+      "example.com",
+      "api.example.com"
+    ],
+    "cors_origins": [
+      "https://app.example.com"
+    ]
   },
   "feature_flags": {
     "new_ui": true,

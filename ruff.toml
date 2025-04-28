@@ -7,24 +7,25 @@ line-length = 88
 [lint]
 # Enable all rules from these categories
 select = [
-    "E",  # pycodestyle errors
-    "F",  # pyflakes
-    "B",  # flake8-bugbear
-    "I",  # isort
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "B", # flake8-bugbear
+    "I", # isort
     "C4", # flake8-comprehensions
-    "N",  # pep8-naming
-    "D",  # pydocstyle
+    "N", # pep8-naming
+    "D", # pydocstyle
     "UP", # pyupgrade
-    "S",  # flake8-bandit (security)
-    "W",  # warnings
+    "S", # flake8-bandit (security)
+    "W", # warnings
 ]
 
 # Ignore specific rules
 ignore = [
-    "D203",  # One blank line before class docstring
-    "D212",  # Multi-line docstring summary should start at the first line
-    "D210",  # No whitespaces allowed surrounding docstring text
+    "D203", # One blank line before class docstring
+    "D212", # Multi-line docstring summary should start at the first line
+    "D210", # No whitespaces allowed surrounding docstring text
     "UP036", # Version block is outdated for minimum Python version
+    "UP007", # Use `X | Y` for type annotations
 ]
 
 # Exclude files and directories
@@ -44,16 +45,16 @@ exclude = [
 [lint.per-file-ignores]
 # Ignore specific rules for tests
 "tests/**/*.py" = [
-    "S101",  # Use of assert
-    "D100",  # Missing docstring in public module
-    "D101",  # Missing docstring in public class
-    "D102",  # Missing docstring in public method
-    "D103",  # Missing docstring in public function
+    "S101", # Use of assert
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
     "UP007", # Use `X | Y` for type annotations
-    "D104",  # Missing docstring in public package
+    "D104", # Missing docstring in public package
 ]
 "**/__init__.py" = [
-    "F401",  # Unused import
+    "F401", # Unused import
 ]
 
 [lint.pydocstyle]

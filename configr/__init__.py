@@ -37,9 +37,9 @@ Typical usage:
 import sys
 
 # Import the main classes and functions to expose them at the package level
-from .base import ConfigBase
-from .config_class import config_class
-from .exceptions import ConfigFileNotFoundError, ConfigValidationError
+from configr.base import ConfigBase
+from configr.config_class import config_class
+from configr.exceptions import ConfigFileNotFoundError, ConfigValidationError
 
 # Define what should be accessible when someone does 'from configr import *'
 __all__ = [

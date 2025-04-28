@@ -1,6 +1,7 @@
 # Utilities
 
-Configr includes utility functions that support the configuration management functionality. This page documents the core utility functions available in Configr.
+Configr includes utility functions that support the configuration management functionality. This page documents the core
+utility functions available in Configr.
 
 ## to_snake_case
 
@@ -62,6 +63,7 @@ The function:
 4. Converts everything to lowercase
 
 The core regular expression pattern is:
+
 ```python
 re.findall(r'[a-z0-9]+|[A-Z](?:[A-Z0-9]*(?![a-z])|[a-z0-9]*)', name)
 ```
@@ -75,21 +77,24 @@ OR
 - An uppercase letter: `[A-Z]` followed by either:
     - Zero or more uppercase letters and numbers not followed by a lowercase letter: `[A-Z0-9]*(?![a-z])`
 
-    OR
+  OR
 
     - Zero or more lowercase letters and numbers: `[a-z0-9]*`
 
 ## Usage in Configr
 
-The `to_snake_case` function is used internally by Configr in the `config_class` decorator to derive default configuration file names from class names when a specific file name is not provided.
+The `to_snake_case` function is used internally by Configr in the `config_class` decorator to derive default
+configuration file names from class names when a specific file name is not provided.
 
-For example, a class named `DatabaseConfig` would, by default, look for a configuration file named `database_config.json` (or other supported extensions).
+For example, a class named `DatabaseConfig` would, by default, look for a configuration file named `database_config` (
+with any supported extension like `.json` or `.yaml`).
 
 ```python
-@config_class  # Will use database_config.json by default
+@config_class  # Will use database_config as the base name
 class DatabaseConfig:
     host: str
     port: int
 ```
 
-This helps maintain a consistent naming convention for configuration files that follows Python's standard style guidelines.
+This helps maintain a consistent naming convention for configuration files that follows Python's standard style
+guidelines.

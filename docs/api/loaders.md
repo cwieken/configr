@@ -1,6 +1,7 @@
 # Loaders
 
-The Configr library provides a flexible loading system for different configuration file formats. This page documents the loaders included with Configr and how to create custom loaders for additional file formats.
+The Configr library provides a flexible loading system for different configuration file formats. This page documents the
+loaders included with Configr and how to create custom loaders for additional file formats.
 
 ## Overview
 
@@ -10,22 +11,97 @@ Loaders in Configr:
 2. Parse those files into Python dictionaries
 3. Allow the `ConfigBase` class to convert the dictionaries into typed dataclasses
 
-## Base Class: ConfigLoader
+## Base Classes
+
+### ConfigLoader
 
 All loaders in Configr inherit from the abstract base class `ConfigLoader`.
 
 ```python
 from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Dict, Any
+from typing import Any, TypeVar
+
+T = TypeVar('T')
+
 
 class ConfigLoader(ABC):
-    """Abstract base class for configuration loaders."""
+    """
+    Abstract base class for configuration loaders.
+    
+    Defines the common interface that all configuration loaders must implement.
+    Configuration loaders are responsible for loading configuration data from
+    various sources and returning it as a dictionary.
+    """
 
+    @classmethod
     @abstractmethod
-    def load(self, path: Path) -> Dict[str, Any]:
-        """Load configuration from the specified path."""
+    def load(cls, name: str, config_class: type[T]) -> dict[str, Any]:
+        """
+        Load configuration data for the specified configuration class.
+        
+        Args:
+            name (str): The name or identifier of the configuration to load.
+            config_class (type[T]): The dataclass type for which to load configuration.
+            
+        Returns:
+            dict[str, Any]: The loaded configuration data as a dictionary.
+            
+        Raises:
+            ConfigFileNotFoundError: If the configuration cannot be found.
+            TypeError: If the config_class is not a dataclass.
+        """
         pass
+```
+
+### FileConfigLoader
+
+For file-based configuration sources, Configr provides the `FileConfigLoader` abstract class:
+
+```python
+class FileConfigLoader(ConfigLoader, ABC):
+    """
+    Abstract base class for file-based configuration loaders.
+    
+    Extends the ConfigLoader interface with file-specific functionality,
+    providing common methods for locating and loading configuration files.
+    File-based loaders support specific file extensions and search in a
+    configurable directory.
+    """
+    _config_dir: ClassVar[str] = os.environ.get('CONFIG_DIR', '_config')
+    ext: list[str]  # Register list of supported file extensions
+
+    @classmethod
+    def get_extensions(cls) -> list[str]:
+        """Get the supported file extensions."""
+        return cls.ext
+
+    @classmethod
+    def get_config_path(cls) -> Path:
+        """Get the base configuration directory path."""
+        return Path(cls._config_dir)
+
+    @classmethod
+    def set_config_dir(cls, config_dir: str | Path) -> None:
+        """Set the base config directory path if default should not be used."""
+        if isinstance(config_dir, Path):
+            cls._config_dir = str(config_dir)
+        else:
+            cls._config_dir = config_dir
+
+    @classmethod
+    def _iter_config_file_paths(cls, name: str) -> Generator[Path, Any, None]:
+        """Iterate over all possible configuration file paths."""
+        # Implementation details
+
+    @classmethod
+    def _get_config_file_path(cls, name: str) -> Path:
+        """Get full path to config file (first that exists)."""
+        # Implementation details
+
+    @classmethod
+    def config_file_exists(cls, name: str) -> bool:
+        """Check if config file exists."""
+        # Implementation details
 ```
 
 ## Built-in Loaders
@@ -35,13 +111,32 @@ class ConfigLoader(ABC):
 Loader for JSON configuration files.
 
 ```python
-class JSONConfigLoader(ConfigLoader):
-    """Loader for JSON configuration files."""
+class JSONConfigLoader(FileConfigLoader):
+    """
+    Loader for JSON configuration files.
+    
+    This class provides functionality to load configuration data from JSON files
+    and map it to the fields of a dataclass.
+    """
+    ext: list[str] = ['.json']  # Supported file extensions for JSON configuration files.
 
-    def load(self, path: Path) -> Dict[str, Any]:
-        """Load JSON configuration from the specified path."""
-        with open(path, 'r') as f:
-            return json.load(f)
+    @classmethod
+    def load(cls, name: str, config_class: type[T] = None) -> dict[str, Any]:
+        """
+        Load JSON configuration from the specified path.
+        
+        Args:
+            name (str): The name of the configuration file (without extension).
+            config_class (type[T]): The dataclass type to map the configuration data to.
+            
+        Returns:
+            dict[str, Any]: A dictionary containing the loaded configuration data.
+            
+        Raises:
+            FileNotFoundError: If the specified configuration file does not exist.
+            json.JSONDecodeError: If the file contains invalid JSON.
+        """
+        # Implementation details
 ```
 
 Example JSON configuration file:
@@ -61,16 +156,33 @@ Example JSON configuration file:
 Loader for YAML configuration files. Requires PyYAML to be installed.
 
 ```python
-class YAMLConfigLoader(ConfigLoader):
-    """Loader for YAML configuration files."""
+class YAMLConfigLoader(FileConfigLoader):
+    """
+    Loader for YAML configuration files.
+    
+    This class provides functionality to load configuration data from YAML files
+    and map it to the fields of a dataclass. It supports files with `.yaml` and `.yml` extensions.
+    """
+    ext: list[str] = ['.yaml', '.yml']  # Supported file extensions for YAML configuration files.
 
-    def load(self, path: Path) -> Dict[str, Any]:
-        """Load YAML configuration from the specified path."""
-        if not YAML_AVAILABLE:
-            raise ImportError("PyYAML is required for YAML support. Install with 'pip install pyyaml'.")
-
-        with open(path, 'r') as f:
-            return yaml.safe_load(f)
+    @classmethod
+    def load(cls, name: str, config_class: type[T] = None) -> dict[str, Any]:
+        """
+        Load YAML configuration from the specified path.
+        
+        Args:
+            name (str): The name of the configuration file (without extension).
+            config_class (type[T]): The dataclass type to map the configuration data to.
+            
+        Returns:
+            dict[str, Any]: A dictionary containing the loaded configuration data.
+            
+        Raises:
+            ImportError: If PyYAML is not installed.
+            FileNotFoundError: If the specified configuration file does not exist.
+            yaml.YAMLError: If the file contains invalid YAML.
+        """
+        # Implementation details
 ```
 
 Example YAML configuration file:
@@ -92,31 +204,40 @@ You can extend Configr with support for additional file formats by creating cust
 Here's an example of how to create a loader for TOML files:
 
 ```python
-from pathlib import Path
-from typing import Dict, Any
-from configr import ConfigLoader, ConfigBase
+from typing import Any, TypeVar
+from configr.loaders.base import FileConfigLoader
 
-class TOMLConfigLoader(ConfigLoader):
+T = TypeVar('T')
+
+
+class TOMLConfigLoader(FileConfigLoader):
     """Loader for TOML configuration files."""
+    ext: list[str] = ['.toml']  # Supported file extensions
 
-    def load(self, path: Path) -> Dict[str, Any]:
+    @classmethod
+    def load(cls, name: str, config_class: type[T] = None) -> dict[str, Any]:
         """Load TOML configuration from the specified path."""
         try:
             import toml
         except ImportError:
             raise ImportError("The 'toml' package is required for TOML support. Install with 'pip install toml'.")
-            
-        with open(path, 'r') as f:
+
+        config_file_path = cls._get_config_file_path(name)
+        with open(config_file_path) as f:
             return toml.load(f)
 
+
 # Register the loader with Configr
-ConfigBase.add_loader('.toml', TOMLConfigLoader)
+from configr import ConfigBase
+
+ConfigBase.add_loader(TOMLConfigLoader)
 ```
 
 Once registered, you can use TOML files with your configuration classes:
 
 ```python
 from configr import config_class
+
 
 @config_class(file_name="database.toml")
 class DatabaseConfig:
@@ -144,21 +265,38 @@ Here's an example of a loader for INI files using Python's built-in `configparse
 ```python
 import configparser
 from pathlib import Path
-from typing import Dict, Any
-from configr import ConfigLoader, ConfigBase
+from typing import Any, TypeVar
 
-class INIConfigLoader(ConfigLoader):
+from configr.loaders.base import FileConfigLoader
+
+T = TypeVar('T')
+
+
+class INIConfigLoader(FileConfigLoader):
     """Loader for INI configuration files."""
+    ext: list[str] = ['.ini']  # Supported file extensions
 
-    def load(self, path: Path) -> Dict[str, Dict[str, Any]]:
+    @classmethod
+    def load(cls, name: str, config_class: type[T] = None) -> dict[str, Any]:
         """Load INI configuration from the specified path."""
+        config_file_path = cls._get_config_file_path(name)
+
         config = configparser.ConfigParser(interpolation=None)
-        config.read(path)
-        return self.as_dict(config)
+        config.read(config_file_path)
+        return cls.as_dict(config)
 
     @staticmethod
-    def as_dict(config: configparser.ConfigParser) -> Dict[str, Dict[str, Any]]:
-        """Convert the parsed INI configuration to a nested dictionary."""
+    def as_dict(config: configparser.ConfigParser) -> dict[str, Any]:
+        """
+        Convert the parsed INI configuration to a nested dictionary.
+        
+        This method transforms the ConfigParser representation into a dictionary structure
+        where each section becomes a top-level key containing a dictionary of its options.
+        Default values are included at the top level of the resulting dictionary.
+        
+        Returns:
+            dict[str, Any]: A nested dictionary representation of the configuration.
+        """
         config_dict = {}
 
         for default_name, default_value in config.defaults().items():
@@ -166,13 +304,17 @@ class INIConfigLoader(ConfigLoader):
 
         for section in config.sections():
             config_dict[section] = {
-                option: config.get(section, option) for option in config.options(section) if
-                option not in config.defaults()
+                option: config.get(section, option)
+                for option in config.options(section)
+                if option not in config.defaults()
             }
         return config_dict
 
+
 # Register the loader with Configr
-ConfigBase.add_loader('.ini', INIConfigLoader)
+from configr import ConfigBase
+
+ConfigBase.add_loader(INIConfigLoader)
 ```
 
 Example INI configuration file:
@@ -204,7 +346,7 @@ Register a custom loader with `ConfigBase.add_loader`:
 from configr import ConfigBase
 from my_loaders import CustomLoader
 
-ConfigBase.add_loader('.custom', CustomLoader)
+ConfigBase.add_loader(CustomLoader)
 ```
 
 ### Removing Loaders
@@ -213,8 +355,9 @@ Remove a loader with `ConfigBase.remove_loader`:
 
 ```python
 from configr import ConfigBase
+from configr.loaders.yaml import YAMLConfigLoader
 
-ConfigBase.remove_loader('.yaml')
+ConfigBase.remove_loader(YAMLConfigLoader)
 ```
 
 ### Getting Available Loaders
@@ -225,32 +368,48 @@ Get all available loaders with `ConfigBase.get_available_loaders`:
 from configr import ConfigBase
 
 loaders = ConfigBase.get_available_loaders()
-print(loaders)  # {'.json': JSONConfigLoader, '.yaml': YAMLConfigLoader, ...}
+print(loaders)  # [JSONConfigLoader, YAMLConfigLoader, ...]
 ```
 
-## Loader Selection
+### Getting Available File Loaders
 
-When loading a configuration, Configr selects the appropriate loader based on the file extension:
+Get all available file-based loaders with `ConfigBase.get_available_file_loaders`:
 
-1. If the configuration class has a `_config_file_name` with an extension (e.g., "database.json"), Configr uses the loader for that extension.
-2. If the extension is missing, Configr tries each registered loader in order until it finds a matching file.
-3. If no matching file is found, a `ConfigFileNotFoundError` is raised.
+```python
+from configr import ConfigBase
+
+file_loaders = ConfigBase.get_available_file_loaders()
+print(file_loaders)  # [JSONConfigLoader, YAMLConfigLoader, ...]
+```
+
+## Loader Selection Process
+
+When loading a configuration, Configr selects the appropriate loader based on the following process:
+
+1. If explicit `config_data` is provided to `ConfigBase.load()`, no loader is used.
+2. For file-based configuration:
+    - If a file extension is specified in `_config_file_name`, Configr looks for that exact file.
+    - Otherwise, it tries each available file loader to find a matching file.
+3. If no file loader can find a matching file, it tries any non-file loaders.
+4. If no loader can be found, a `ValueError` is raised.
 
 ## Best Practices for Custom Loaders
 
 1. **Error Handling**: Include clear error messages for missing dependencies or file format issues.
 2. **Dependencies**: Document any external dependencies required by your loader.
 3. **Type Conversion**: Ensure your loader returns data as expected by Configr (dictionaries with the correct types).
-4. **File Extension**: Use a unique file extension for your format to avoid conflicts.
+4. **Configuration Directory**: Use the `_config_dir` path provided by `FileConfigLoader` for file locations.
+5. **File Extension List**: Define a clear list of supported file extensions in the `ext` class variable.
 
 ## Example Usage
 
 ```python
 from configr import config_class, ConfigBase
-from my_loaders import XML_ConfigLoader
+from my_loaders import XMLConfigLoader
 
 # Register custom XML loader
-ConfigBase.add_loader('.xml', XML_ConfigLoader)
+ConfigBase.add_loader(XMLConfigLoader)
+
 
 @config_class(file_name="database.xml")
 class DatabaseConfig:
@@ -259,6 +418,7 @@ class DatabaseConfig:
     username: str
     password: str
     database: str
+
 
 # Load from XML file
 db_config = ConfigBase.load(DatabaseConfig)

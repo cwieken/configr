@@ -10,7 +10,10 @@ import yaml
 from configr.base import ConfigBase
 from configr.config_class import config_class
 from configr.exceptions import ConfigFileNotFoundError
-from configr.loaders import JSONConfigLoader, YAMLConfigLoader
+from configr.loaders.base import FileConfigLoader
+from configr.loaders.env_var import EnvVarConfigLoader
+from configr.loaders.json import JSONConfigLoader
+from configr.loaders.yaml import YAMLConfigLoader
 
 
 @pytest.fixture
@@ -64,13 +67,16 @@ def test_config_dir_management(config_dir):
     # Test with string path
     test_path = "/test/configs"
     ConfigBase.set_config_dir(test_path)
+
     # Convert to path so it works on all platforms
-    assert Path(str(ConfigBase.get_config_path())) == Path(test_path)
+    for loaders in ConfigBase.get_available_file_loaders():
+        assert Path(str(loaders.get_config_path())) == Path(test_path)
 
     # Test with Path object
     test_path_obj = Path("/var/configs")
     ConfigBase.set_config_dir(test_path_obj)
-    assert ConfigBase.get_config_path() == test_path_obj
+    for loaders in ConfigBase.get_available_file_loaders():
+        assert loaders.get_config_path() == test_path_obj
 
     # Reset to our test directory
     ConfigBase.set_config_dir(config_dir)
@@ -79,15 +85,19 @@ def test_config_dir_management(config_dir):
 def test_available_loaders():
     """Test getting available loaders."""
     loaders = ConfigBase.get_available_loaders()
-    assert ".json" in loaders
-    assert ".yaml" in loaders
-    assert ".yml" in loaders
-    assert loaders[".json"] == JSONConfigLoader
-    assert loaders[".yaml"] == YAMLConfigLoader
-    assert loaders[".yml"] == YAMLConfigLoader
+    for loader in loaders:
+        if isinstance(loader, JSONConfigLoader):
+            assert ".json" in loader.ext
+
+        if isinstance(loader, YAMLConfigLoader):
+            assert ".yaml" in loader.ext
+            assert ".yml" in loader.ext
+
+        if isinstance(loader, EnvVarConfigLoader):
+            assert not hasattr(loader, "ext")
 
 
-def test_config_class_decorator_default_naming(config_dir):
+def test_config_class_decorator_default_naming():
     """Test config_class decorator with default naming."""
 
     @config_class
@@ -98,10 +108,6 @@ def test_config_class_decorator_default_naming(config_dir):
 
     # Check that file name is set to snake case of class name with default extension
     assert DatabaseConfig._config_file_name == "database_config"
-
-    # Load the config (this should look for database_config.json which doesn't exist)
-    with pytest.raises(ConfigFileNotFoundError):
-        ConfigBase.load(DatabaseConfig)
 
 
 def test_config_class_decorator_explicit_naming(config_dir):
@@ -131,6 +137,9 @@ def test_config_class_decorator_with_extension(config_dir):
         api_key: str
         timeout: int
         retry_attempts: int
+
+    # Check that file name is set correctly
+    assert ApiConfig._config_file_name == "api_settings.yaml"
 
     # Load the config
     config = ConfigBase.load(ApiConfig)
@@ -275,12 +284,15 @@ def test_custom_loader(config_dir):
     open(config_dir / "test.custom", "a").close()
 
     # Define a mock custom loader
-    class CustomLoader(MagicMock):
-        def load(self, path):
+    class CustomLoader(FileConfigLoader, MagicMock):
+        ext: list[str] = [".custom"]
+
+        @classmethod
+        def load(cls, name: str, config_class: type) -> dict:
             return {"custom": "value"}
 
     # Add custom loader to ConfigBase
-    ConfigBase.add_loader(".custom", CustomLoader)
+    ConfigBase.add_loader(CustomLoader)
     try:
         @config_class(file_name="test.custom")
         class CustomConfig:

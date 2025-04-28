@@ -50,6 +50,7 @@ First, define your configuration classes that match your configuration files:
 # config.py
 from configr import config_class
 
+
 @config_class(file_name="database.json")
 class DatabaseConfig:
     username: str
@@ -58,14 +59,15 @@ class DatabaseConfig:
     host: str
     port: int = 5432
 
+
 @config_class(file_name="app_settings.yaml")
 class AppSettings:
     debug: bool = False
     log_level: str = "INFO"
     max_connections: int = 100
     timeout: int = 60
-    enabled_cachine: bool = false
-    enable_metrics: bool = false
+    enable_caching: bool = False
+    enable_metrics: bool = False
 ```
 
 ## Loading Configuration
@@ -84,7 +86,7 @@ app_settings = ConfigBase.load(AppSettings)
 # Use configurations
 if app_settings.debug:
     print(f"Running in DEBUG mode with log level {app_settings.log_level}")
-    print(f"Caching enabled: {app_settings.features['enable_caching']}")
+    print(f"Caching enabled: {app_settings.enable_caching}")
 
 # Database connection example
 print(f"Connecting to database {db_config.database} at {db_config.host}:{db_config.port}")
@@ -133,7 +135,7 @@ For different environments (development, testing, production), you can:
         # ...
     ```
 
-2. **Override values with environment variables**:
+2. **Override values programmatically after loading using environment variables**:
 
     ```python
     import os
@@ -150,7 +152,8 @@ For different environments (development, testing, production), you can:
 
 ## Working with Nested Configurations
 
-Configr automatically handles nested dataclass structures in your configuration hierarchy. This allows you to organize complex configuration in a type-safe and well-structured manner.
+Configr automatically handles nested dataclass structures in your configuration hierarchy. This allows you to organize
+complex configuration in a type-safe and well-structured manner.
 
 ### Defining Nested Configuration Classes
 
@@ -158,16 +161,19 @@ Configr automatically handles nested dataclass structures in your configuration 
 from configr import config_class
 from dataclasses import dataclass
 
+
 @dataclass
 class LoggingConfig:
     level: str = "INFO"
     format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     file: str = None
-    
+
+
 @dataclass
 class Tag:
-   name: str = None
-   category: str = None
+    name: str = None
+    category: str = None
+
 
 @config_class(file_name="app_config.json")
 class AppConfig:
@@ -175,7 +181,7 @@ class AppConfig:
     version: str
     debug: bool = False
     logging: LoggingConfig = None
-    tags: list[Tags] = None
+    tags: list[Tag] = None
 ```
 
 ### Configuration File Structure
@@ -192,8 +198,14 @@ The corresponding JSON file structure would look like:
     "file": "app.log"
   },
   "tags": [
-    {"name":  "MyApp", "category":  "application"},
-    {"name":  "1.0.0", "category":  "version"}
+    {
+      "name": "MyApp",
+      "category": "application"
+    },
+    {
+      "name": "1.0.0",
+      "category": "version"
+    }
   ]
 }
 ```
@@ -237,12 +249,14 @@ class DatabaseConfig:
     port: int = 5432
     username: str = None
     password: str = None
-    
+
+
 @dataclass
 class CacheConfig:
     enabled: bool = False
     ttl: int = 300
-    
+
+
 @config_class(file_name="server_config.json")
 class ServerConfig:
     host: str = "0.0.0.0"
@@ -251,7 +265,8 @@ class ServerConfig:
     cache: CacheConfig = None
 ```
 
-With this approach, if the configuration file doesn't specify certain nested objects, they'll be created with their default values.
+With this approach, if the configuration file doesn't specify certain nested objects, they'll be created with their
+default values if all required fields have defaults.
 
 ## Configuration Directory
 
@@ -283,6 +298,7 @@ from dataclasses import dataclass
 # Get environment
 ENV = os.environ.get("ENV", "development")
 
+
 @dataclass
 class DatabaseConfig:
     host: str = "localhost"
@@ -291,10 +307,12 @@ class DatabaseConfig:
     password: str = None
     database: str = None
 
+
 @dataclass
 class LoggingConfig:
     level: str = "INFO"
     file: str = None
+
 
 @config_class(file_name=f"app.{ENV}.json")
 class AppConfig:
@@ -303,7 +321,7 @@ class AppConfig:
     debug: bool = False
     database: DatabaseConfig = None
     logging: LoggingConfig = None
-    
+
     def __post_init__(self):
         # Apply environment variable overrides
         if "LOG_LEVEL" in os.environ:

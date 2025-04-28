@@ -1,6 +1,7 @@
 # Exceptions
 
-Configr defines custom exceptions to provide clear error handling and diagnostics when loading and validating configuration.
+Configr defines custom exceptions to provide clear error handling and diagnostics when loading and validating
+configuration.
 
 ## Exception Classes
 
@@ -12,7 +13,8 @@ class ConfigFileNotFoundError(FileNotFoundError):
     pass
 ```
 
-This exception is raised when Configr cannot find a configuration file for a given configuration class. It inherits from the built-in `FileNotFoundError` class.
+This exception is raised when Configr cannot find a configuration file for a given configuration class. It inherits from
+the built-in `FileNotFoundError` class.
 
 #### When It's Raised
 
@@ -47,6 +49,7 @@ This exception is raised when the configuration data fails validation. It inheri
 
 - When the types in the configuration file don't match the types defined in the configuration class
 - When required fields are missing in the configuration data
+- When custom validation in `__post_init__` fails
 
 #### Example
 
@@ -115,18 +118,21 @@ You can raise `ConfigValidationError` in your own `__post_init__` methods to pro
 ```python
 from configr import config_class, ConfigValidationError
 
+
 @config_class
 class ServerConfig:
     host: str
     port: int
     workers: int
-    
+
     def __post_init__(self):
         if self.port < 1024 or self.port > 65535:
-            raise ConfigValidationError(f"Invalid port: {self.port}. Must be between 1024 and 65535.")
+            raise ValueError(f"Invalid port: {self.port}. Must be between 1024 and 65535.")
         if self.workers < 1:
-            raise ConfigValidationError(f"Invalid workers: {self.workers}. Must be at least 1.")
+            raise ValueError(f"Invalid workers: {self.workers}. Must be at least 1.")
 ```
+
+Note that any `ValueError` raised during initialization is caught by Configr and wrapped in a `ConfigValidationError`.
 
 ## Exception Hierarchy
 
@@ -147,23 +153,23 @@ This hierarchy allows you to catch exceptions at different levels depending on y
 ```python
 # Catch only Configr-specific file not found errors
 except ConfigFileNotFoundError as e:
-    # Handle missing configuration files
+# Handle missing configuration files
 
 # Catch any file not found errors
 except FileNotFoundError as e:
-    # Handle any missing files
+# Handle any missing files
 
 # Catch only Configr-specific validation errors
 except ConfigValidationError as e:
-    # Handle validation errors
+# Handle validation errors
 
 # Catch any value errors
 except ValueError as e:
-    # Handle any value errors
+# Handle any value errors
 
 # Catch any exceptions
 except Exception as e:
-    # Handle any exceptions
+# Handle any exceptions
 ```
 
 ## Example: Complete Error Handling
@@ -173,6 +179,7 @@ Here's a complete example of robust error handling with Configr:
 ```python
 from configr import ConfigBase, config_class, ConfigFileNotFoundError, ConfigValidationError
 
+
 @config_class(file_name="database.json")
 class DatabaseConfig:
     host: str = "localhost"
@@ -180,16 +187,17 @@ class DatabaseConfig:
     username: str = None
     password: str = None
     database: str = None
-    
+
     def __post_init__(self):
         if self.port < 1024 or self.port > 65535:
-            raise ConfigValidationError(f"Invalid port: {self.port}")
+            raise ValueError(f"Invalid port: {self.port}")
         if not self.username and not self.password:
             # This is allowed, will use default authentication
             pass
         elif not self.username or not self.password:
             # This is not allowed, must provide both or neither
-            raise ConfigValidationError("Both username and password must be provided")
+            raise ValueError("Both username and password must be provided")
+
 
 def load_database_config():
     """Load database configuration with robust error handling."""
@@ -206,6 +214,7 @@ def load_database_config():
     except Exception as e:
         print(f"Unexpected error loading database configuration: {e}")
         raise
+
 
 # Usage
 db_config = load_database_config()

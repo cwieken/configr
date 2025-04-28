@@ -25,17 +25,26 @@ pip install py-configr[yaml]
 
 ## Configuration Directory
 
-By default, Configr looks for configuration files in a `_config/` directory at the root of your project. You can customize this by setting the `CONFIG_DIR` environment variable:
+By default, Configr looks for configuration files at a path from `CONFIG_DIR` environment variable or in a `_config/`
+directory at the root of your project. You can change this globally:
+
+By setting the environment variable
 
 ```bash
 export CONFIG_DIR=path/to/your/config
 ```
 
-Or programmatically:
+or programmatically:
 
 ```python
-import os
-os.environ["CONFIG_DIR"] = "path/to/your/config"
+from configr import ConfigBase
+from pathlib import Path
+
+# Set a new configuration directory using string
+ConfigBase.set_config_dir("path/to/your/config")
+
+# Or using Path from pathlib
+ConfigBase.set_config_dir(Path("path/to/your/config"))
 ```
 
 ## Defining Configuration Classes
@@ -45,6 +54,7 @@ Use the `@config_class` decorator to define your configuration structure:
 ```python
 from configr import config_class
 
+
 @config_class
 class AppConfig:
     debug: bool = False
@@ -52,12 +62,13 @@ class AppConfig:
     max_connections: int = 100
 ```
 
-By default, the library will look for a file named after the class in snake_case with a `.json` extension. For the `AppConfig` example above, it would look for `_config/app_config.json`.
+By default, the library will look for a file named after the class in snake_case. For the `AppConfig` example above, it
+would look for `_config/app_config.json` or `_config/app_config.yaml` depending on the available loaders.
 
 You can specify a custom file name:
 
 ```python
-@config_class(file_name="settings.yaml")
+@config_class(file_name="settings.json")
 class AppConfig:
     debug: bool = False
     log_level: str = "INFO"
@@ -99,18 +110,21 @@ log_level: DEBUG
 max_connections: 50
 ```
 
-## Handling Missing Files
+## Handling Missing Files and Validation Errors
 
-If a configuration file is missing, Configr will raise a `ConfigFileNotFoundError`. You can handle this gracefully:
+Configr provides specific exceptions for different error types:
 
 ```python
-from configr import ConfigBase, ConfigFileNotFoundError
+from configr import ConfigBase, ConfigFileNotFoundError, ConfigValidationError
 
 try:
     app_config = ConfigBase.load(AppConfig)
 except ConfigFileNotFoundError:
     print("Configuration file not found, using defaults")
     app_config = AppConfig()
+except ConfigValidationError as e:
+    print(f"Configuration validation failed: {e}")
+    # Handle invalid configuration values
 ```
 
 ## Complete Example
@@ -118,12 +132,12 @@ except ConfigFileNotFoundError:
 Here's a complete example of how to use Configr in a project:
 
 ```python
-import os
 from dataclasses import dataclass
-from configr import config_class, ConfigBase, ConfigFileNotFoundError
+from configr import config_class, ConfigBase, ConfigFileNotFoundError, ConfigValidationError
+
 
 # Define configuration classes
-@config_class(file_name="database.json")
+@dataclass
 class DatabaseConfig:
     host: str = "localhost"
     port: int = 5432
@@ -131,38 +145,46 @@ class DatabaseConfig:
     password: str
     database: str
 
-@config_class(file_name="app.json")
+
+@config_class(file_name="settings.json")
 class AppConfig:
     debug: bool = False
     log_level: str = "INFO"
     max_connections: int = 100
+    database: DatabaseConfig
+
 
 # Load configuration
 try:
-    db_config = ConfigBase.load(DatabaseConfig)
     app_config = ConfigBase.load(AppConfig)
-    
+
     # Use configuration
     print(f"Application running in {'debug' if app_config.debug else 'production'} mode")
-    print(f"Connecting to database {db_config.database} at {db_config.host}:{db_config.port}")
+    print(
+        f"Connecting to database {app_config.database.database} at {app_config.database.host}:{app_config.database.port}")
     
 except ConfigFileNotFoundError as e:
     print(f"Configuration error: {e}")
     print("Using default configuration")
-    
-    # Fall back to defaults
-    db_config = DatabaseConfig(
-        username="default_user",
-        password="default_password",
-        database="default_db"
+
+    # Fall back to defaults with minimal required values
+    app_config = AppSettings(
+        database=DatabaseConfig(
+            username="default_user",
+            password="default_password",
+            database="default_db"
+        )
     )
-    app_config = AppConfig()
+except ConfigValidationError as e:
+    print(f"Configuration validation error: {e}")
+    # Handle invalid configuration
 ```
 
 ## Next Steps
 
 Now that you have the basics of Configr, you can explore more advanced topics:
 
-- [Configuration Classes](user-guide/config-classes.md): Learn more about defining and working with configuration classes
+- [Configuration Classes](user-guide/config-classes.md): Learn more about defining and working with configuration
+  classes
 - [Custom Loaders](user-guide/custom-loaders.md): Extend Configr with support for additional file formats
 - [Examples](examples.md): See examples of Configr in action

@@ -20,14 +20,16 @@ Typical usage:
     config = ConfigBase.load(DatabaseConfig)
 """
 import dataclasses
-import os
 from collections.abc import Iterable
 from pathlib import Path
-from typing import ClassVar, Generic, TypeVar, get_args
+from typing import Any, Generic, TypeVar, get_args
 
-from .exceptions import ConfigFileNotFoundError, ConfigValidationError
-from .field_type_checker import FieldTypeChecker
-from .loaders import ConfigLoader, JSONConfigLoader, YAMLConfigLoader
+from configr.exceptions import ConfigFileNotFoundError, ConfigValidationError
+from configr.field_type_checker import FieldTypeChecker
+from configr.loaders.base import ConfigLoader, FileConfigLoader
+from configr.loaders.env_var import EnvVarConfigLoader
+from configr.loaders.json import JSONConfigLoader
+from configr.loaders.yaml import YAMLConfigLoader
 
 T = TypeVar('T')
 
@@ -38,43 +40,64 @@ class ConfigBase(Generic[T]):
 
     Handles loading configuration from files and conversion to dataclasses.
     """
-
-    _config_dir: ClassVar[str] = os.environ.get('CONFIG_DIR', '_config')
-    _loaders: ClassVar[dict[str, type[ConfigLoader]]] = {
-        '.json': JSONConfigLoader,
-        '.yaml': YAMLConfigLoader,
-        '.yml': YAMLConfigLoader
-    }
+    _loaders: list[type[ConfigLoader]] = [
+        JSONConfigLoader,
+        YAMLConfigLoader,
+        EnvVarConfigLoader
+    ]
 
     @classmethod
     def set_config_dir(cls, config_dir: str | Path) -> None:
-        """Set the base config directory path if default should not be used."""
-        if isinstance(config_dir, Path):
-            cls._config_dir = str(config_dir)
-        else:
-            cls._config_dir = config_dir
+        """
+        Set the directory where configuration files are stored.
+
+        Args:
+            config_dir (str | Path): The directory path for configuration files.
+        """
+        FileConfigLoader.set_config_dir(config_dir)
 
     @classmethod
-    def get_available_loaders(cls) -> dict[str, type[ConfigLoader]]:
-        """Get available loaders for different file extensions."""
+    def get_available_loaders(cls) -> list[type[ConfigLoader]]:
+        """
+        Get available loaders for different file extensions.
+
+        Returns:
+            list[type[ConfigLoader]]: A list of available configuration loaders.
+        """
         return cls._loaders
 
     @classmethod
-    def add_loader(cls, ext: str, loader: type[ConfigLoader]) -> None:
-        """Add a loader for a specific file extension."""
-        if ext not in cls._loaders:
-            cls._loaders[ext] = loader
+    def get_available_file_loaders(cls) -> list[type[FileConfigLoader]]:
+        """
+        Get available file-based loaders for different file extensions.
+
+        Returns:
+            list[type[FileConfigLoader]]: A list of file-based configuration loaders.
+        """
+        return [loader for loader in cls._loaders
+                if issubclass(loader, FileConfigLoader)]
 
     @classmethod
-    def remove_loader(cls, ext: str) -> None:
-        """Remove a loader for a specific file extension."""
-        if ext in cls._loaders:
-            del cls._loaders[ext]
+    def add_loader(cls, loader: type[ConfigLoader]) -> None:
+        """
+        Add a loader for a specific file extension.
+
+        Args:
+            loader (type[ConfigLoader]): The loader to add.
+        """
+        if loader not in cls._loaders:
+            cls._loaders.append(loader)
 
     @classmethod
-    def get_config_path(cls) -> Path:
-        """Get the base configuration directory path."""
-        return Path(cls._config_dir)
+    def remove_loader(cls, loader: type[ConfigLoader]) -> None:
+        """
+        Remove a specific loader.
+
+        Args:
+            loader (type[ConfigLoader]): The loader to remove.
+        """
+        if loader in cls._loaders:
+            cls._loaders.remove(loader)
 
     @classmethod
     def load(cls, config_class: type[T], config_data: dict | None = None) -> T:
@@ -82,53 +105,100 @@ class ConfigBase(Generic[T]):
         Load configuration from file and convert to the specified dataclass.
 
         Args:
-            config_class: The dataclass to convert configuration to
-            config_data: Optional dictionary with configuration data, if it
-                         is not provided, the configuration will be loaded
-                         from file. This is mostly needed for recursive
-                         loading of nested dataclasses.
+            config_class (type[T]): The dataclass to convert configuration to.
+            config_data (dict | None): Optional dictionary with configuration
+                                       data. If not provided, the configuration
+                                       will be loaded from file.
 
         Returns:
-            An instance of the specified dataclass with loaded configuration
+            T: An instance of the specified dataclass with loaded configuration.
+
+        Raises:
+            TypeError: If `config_class` is not a dataclass.
+            ConfigValidationError: If configuration validation fails.
         """
         # Ensure config_class is a dataclass
         if not dataclasses.is_dataclass(config_class):
             raise TypeError(f"{config_class.__name__} must be a dataclass")
 
         if config_data is None:
-            config_data = cls.__read_config_data_from_file(config_class)
+            config_data = cls.__load_config_data(config_class)
 
-        # Convert to dataclass
-        # Filter config_data to only include fields defined in the dataclass
+        # Extract field names and types from the dataclass
         fields = {f.name: f.type for f in dataclasses.fields(config_class)}
-        field_names = fields.keys()
-        filtered_data = {k: v for k, v in config_data.items()
-                         if k in field_names}
+        filtered_data = cls.__filter_fields(fields, config_data)
 
-        data = cls.__load_nested_dataclasses(fields, filtered_data)
+        # Load config data recursively for nested dataclasses
+        config_data = cls.__load_nested_dataclasses(fields, filtered_data)
+
+        # Validate the types of the fields in the dataclass
         try:
             FieldTypeChecker.check_types(fields, filtered_data)
         except TypeError as exc:
-            raise ConfigValidationError(f"Configuration validation failed: "
-                                        f"{exc}") from exc
+            raise ConfigValidationError(
+                f"Configuration validation failed: {exc}") from exc
 
-        # Create an instance of the dataclass
-        return config_class(**data)
+        # Create an instance of the dataclass and return it
+        return config_class(**config_data)
 
     @classmethod
-    def __read_config_data_from_file(cls, config_class):
-        """Read configuration data from file and return as a dictionary."""
-        file_name = cls._get_config_file_name(config_class)
-        config_file_path = cls._get_config_file_path(file_name)
-        loader = cls._get_loader(config_file_path)
+    def __filter_fields(cls, fields: dict[str, type],
+                        raw_config_data: dict[str, Any]) -> dict[str, Any]:
+        """
+        Filter the data to include only the fields defined in the dataclass.
 
-        config_data = loader.load(config_file_path)
+        This method takes a dictionary of field definitions and a dictionary
+        of raw configuration data, and filters the configuration data to include
+        only the keys that match the field names in the dataclass.
+
+        Args:
+            fields (dict[str, type]): A dictionary mapping field names to
+                                      their types, extracted from the
+                                      dataclass.
+            raw_config_data (dict[str, Any]): A dictionary containing the
+                                              raw configuration data to be
+                                              filtered.
+
+        Returns:
+            dict[str, Any]: A dictionary containing only the key-value pairs from
+                            `raw_config_data` that match the field names in `fields`.
+        """
+        # Get the set of field names
+        field_names = fields.keys()
+
+        # Filter the configuration data to include only keys that match field names
+        # and return the field definitions and the filtered data
+        return {k: v for k, v in raw_config_data.items() if k in field_names}
+
+    @classmethod
+    def __load_config_data(cls, config_class):
+        """
+        Load configuration data from file or loader and return as a dictionary.
+
+        Args:
+            config_class: The dataclass type for which to load configuration data.
+
+        Returns:
+            dict: The loaded configuration data.
+        """
+        name = cls._get_config_file_name(config_class)
+        loader = cls._get_loader(config_class)
+        config_data = loader.load(name, config_class)
 
         return config_data
 
     @classmethod
     def __load_nested_dataclasses(cls, fields: dict[str, type], data: dict) -> dict:
-        """Recursively load nested dataclasses."""
+        """
+        Recursively load nested dataclasses.
+
+        Args:
+            fields (dict[str, type]): A dictionary mapping field names to their types.
+            data (dict): The configuration data to process.
+
+        Returns:
+            dict: The processed configuration data with nested dataclasses loaded.
+        """
         for key, value in data.items():
             field_type = fields[key]
             if dataclasses.is_dataclass(field_type):
@@ -154,34 +224,43 @@ class ConfigBase(Generic[T]):
         return data
 
     @classmethod
-    def _get_loader(cls, file_name):
-        """Determine loader from file extension."""
-        ext = Path(file_name).suffix
+    def _get_loader(cls, config_class: type) -> type[ConfigLoader]:
+        """
+        Determine the appropriate loader for the given configuration class.
 
-        if ext not in cls._loaders:
-            raise ValueError(f"Unsupported file extension: {ext}. Supported: "
-                             f"{list(cls._loaders.keys())}")
+        Args:
+            config_class (type): The configuration class for which to find a loader.
 
-        return cls._loaders[ext]()
+        Returns:
+            type[ConfigLoader]: The loader for the configuration class.
 
-    @classmethod
-    def _get_config_file_path(cls, file_name: str) -> Path:
-        """Get full path to config file."""
-        config_file_path = cls.get_config_path() / file_name
+        Raises:
+            IndexError: If more than one non-file loader is found.
+            ValueError: If no valid loader is found.
+        """
+        for loader in cls.get_available_file_loaders():
+            if loader.config_file_exists(cls._get_config_file_name(config_class)):
+                return loader
 
-        # If file_name does not have a suffix, iterate over all
-        # available extensions and find the first one that exists
-        if Path(file_name).suffix == '':
-            for ext in cls._loaders:
-                config_file_path = cls.get_config_path() / (file_name + ext)
-                if config_file_path.exists():
-                    return config_file_path
+        # If file loader is expected but could not be found,
+        # raise ConfigFileNotFoundError
+        if len(Path(config_class._config_file_name).suffixes) >= 1:
+            raise ConfigFileNotFoundError(
+                f"Configuration file not found: {config_class._config_file_name}")
 
-        if not config_file_path.exists():
-            raise ConfigFileNotFoundError(f"Configuration file not found: "
-                                          f"{config_file_path}")
+        # Return the first non-file loader if no file loader is found
+        # and not extension is specified
+        _non_file_loaders = [loader for loader in cls.get_available_loaders()
+                             if loader not in cls.get_available_file_loaders()]
 
-        return config_file_path
+        if len(_non_file_loaders) > 1:
+            raise IndexError(f"Found more than one non-file "
+                             f"loader: {_non_file_loaders}")
+
+        if len(_non_file_loaders) == 1:
+            return _non_file_loaders[0]
+
+        raise ValueError(f"No valid loader found for {config_class}")
 
     @classmethod
     def _get_config_file_name(cls, config_class: type) -> str:

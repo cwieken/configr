@@ -23,7 +23,7 @@ Typical usage:
 """
 import dataclasses
 
-from .utils import to_snake_case
+from configr.utils import to_snake_case
 
 
 def config_class(cls=None, *, file_name: str = None):
