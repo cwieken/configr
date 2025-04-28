@@ -853,7 +853,8 @@
 
 
 <h1 id="utilities">Utilities</h1>
-<p>Configr includes utility functions that support the configuration management functionality. This page documents the core utility functions available in Configr.</p>
+<p>Configr includes utility functions that support the configuration management functionality. This page documents the core
+utility functions available in Configr.</p>
 <h2 id="to_snake_case">to_snake_case</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">to_snake_case</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -916,35 +917,35 @@
 <li>Joins these elements with underscores</li>
 <li>Converts everything to lowercase</li>
 </ol>
-<p>The core regular expression pattern is:
+<p>The core regular expression pattern is:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[a-z0-9]+|[A-Z](?:[A-Z0-9]*(?![a-z])|[a-z0-9]*)&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <p>This pattern matches:</p>
 <ul>
 <li>Groups of lowercase letters and numbers: <code>[a-z0-9]+</code></li>
 </ul>
 <p>OR</p>
 <ul>
-<li>
-<p>An uppercase letter: <code>[A-Z]</code> followed by either:</p>
-<ul>
+<li>An uppercase letter: <code>[A-Z]</code> followed by either:<ul>
 <li>Zero or more uppercase letters and numbers not followed by a lowercase letter: <code>[A-Z0-9]*(?![a-z])</code></li>
-</ul>
-<p>OR</p>
-<ul>
-<li>Zero or more lowercase letters and numbers: <code>[a-z0-9]*</code></li>
 </ul>
 </li>
 </ul>
+<p>OR</p>
+<div class="highlight"><pre><span></span><code>- Zero or more lowercase letters and numbers: `[a-z0-9]*`
+</code></pre></div>
 <h2 id="usage-in-configr">Usage in Configr</h2>
-<p>The <code>to_snake_case</code> function is used internally by Configr in the <code>config_class</code> decorator to derive default configuration file names from class names when a specific file name is not provided.</p>
-<p>For example, a class named <code>DatabaseConfig</code> would, by default, look for a configuration file named <code>database_config.json</code> (or other supported extensions).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nd">@config_class</span>  <span class="c1"># Will use database_config.json by default</span>
+<p>The <code>to_snake_case</code> function is used internally by Configr in the <code>config_class</code> decorator to derive default
+configuration file names from class names when a specific file name is not provided.</p>
+<p>For example, a class named <code>DatabaseConfig</code> would, by default, look for a configuration file named <code>database_config</code> (
+with any supported extension like <code>.json</code> or <code>.yaml</code>).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nd">@config_class</span>  <span class="c1"># Will use database_config as the base name</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">DatabaseConfig</span><span class="p">:</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">host</span><span class="p">:</span> <span class="nb">str</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">port</span><span class="p">:</span> <span class="nb">int</span>
 </code></pre></div>
-<p>This helps maintain a consistent naming convention for configuration files that follows Python's standard style guidelines.</p>
+<p>This helps maintain a consistent naming convention for configuration files that follows Python's standard style
+guidelines.</p>
 
 
 
