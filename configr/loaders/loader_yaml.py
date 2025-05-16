@@ -27,10 +27,15 @@ Example usage:
 """
 from typing import Any, TypeVar
 
-import yaml
+# Check if PyYAML is available
+try:
+    import yaml
 
-from configr.loaders import YAML_AVAILABLE
-from configr.loaders.base import FileConfigLoader
+    YAML_AVAILABLE = True
+except ImportError:
+    YAML_AVAILABLE = False
+
+from configr.loaders.loader_base import FileConfigLoader
 
 T = TypeVar('T')
 

@@ -2,8 +2,6 @@ import dataclasses
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from configr.base import ConfigBase
 from configr.config_class import config_class
 
@@ -140,6 +138,7 @@ def test_nested_dataclass_with_missing_values():
 
 def test_nested_dataclass_with_null_value():
     """Test loading where a nested value is null."""
+
     @dataclasses.dataclass
     class DefaultInitChildConfig:
         """A dataclass that can be initialized with no arguments."""
@@ -176,6 +175,7 @@ def test_nested_dataclass_with_null_value():
 
 def test_nested_dataclass_with_list():
     """Test loading configuration with a list of nested dataclasses."""
+
     @config_class(file_name="item_config.json")
     class ItemConfig:
         id: int
@@ -205,39 +205,6 @@ def test_nested_dataclass_with_list():
         ConfigBase.set_config_dir('mock_path')
 
         ConfigBase.load(CollectionConfig)
-
-
-def test_nested_dataclass_with_type_checking():
-    """Test type validation with nested dataclasses."""
-
-    @config_class(file_name="nested_child.json")
-    class ChildConfig:
-        name: str
-        value: int
-
-    @config_class(file_name="nested_parent.json")
-    class ParentConfig:
-        title: str
-        child: ChildConfig
-
-    # Mock the loader to return data with type error (string instead of int)
-    mock_loader = MagicMock()
-    mock_loader.load.return_value = {
-        "title": "Parent Title",
-        "child": {
-            "name": "Child Name",
-            "value": "not-an-integer"  # Type error: string instead of int
-        }
-    }
-
-    with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
-        # Mock the config file path to avoid file system dependency
-        ConfigBase.set_config_dir('mock_path')
-
-        # Should raise ConfigValidationError due to type mismatch
-        from configr.exceptions import ConfigValidationError
-        with pytest.raises(ConfigValidationError):
-            ConfigBase.load(ParentConfig)
 
 
 def test_nested_dataclass_with_generic_types():

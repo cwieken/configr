@@ -10,10 +10,10 @@ import yaml
 from configr.base import ConfigBase
 from configr.config_class import config_class
 from configr.exceptions import ConfigFileNotFoundError
-from configr.loaders.base import FileConfigLoader
-from configr.loaders.env_var import EnvVarConfigLoader
-from configr.loaders.json import JSONConfigLoader
-from configr.loaders.yaml import YAMLConfigLoader
+from configr.loaders.loader_base import FileConfigLoader
+from configr.loaders.loader_env_var import EnvVarConfigLoader
+from configr.loaders.loader_json import JSONConfigLoader
+from configr.loaders.loader_yaml import YAMLConfigLoader
 
 
 @pytest.fixture

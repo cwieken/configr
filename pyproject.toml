@@ -7,7 +7,7 @@ name = "py-configr"
 version = "0.1.1"
 description = "A flexible, type-safe configuration management library for Python"
 readme = "README.md"
-authors = [{name = "Corinna Wieken", email = "5384689+cwieken@users.noreply.github.com"}]
+authors = [{ name = "Corinna Wieken", email = "5384689+cwieken@users.noreply.github.com" }]
 license = "MIT"
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -21,7 +21,7 @@ requires-python = ">=3.10, <3.14"
 yaml = ["pyyaml>=6.0"]
 
 [project.urls]
-"Homepage" = "https://github.com/cieken/configr"
+"Homepage" = "https://github.com/cwieken/configr"
 "Bug Tracker" = "https://github.com/cwieken/configr/issues"
 
 [tool.setuptools]

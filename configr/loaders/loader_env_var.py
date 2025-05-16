@@ -25,10 +25,10 @@ Example usage:
 import dataclasses
 import os
 from dataclasses import Field
-from typing import Any, Optional
+from typing import Any, Optional, Iterable
 
-from configr.loaders.base import ConfigLoader
-from configr.loaders.yaml import T
+from configr.loaders.loader_base import ConfigLoader
+from configr.loaders.loader_yaml import T
 
 
 class EnvVarConfigLoader(ConfigLoader):
@@ -59,7 +59,8 @@ class EnvVarConfigLoader(ConfigLoader):
 
         return dataclasses.fields(config_class)
 
-    def __convert_value(self, value: str, key: str,
+    @classmethod
+    def __convert_value(cls, value: str, key: str,
                         field_types: dict[str, type]) -> Any:
         """
         Convert a string value from an env variable to the appropriate type.
@@ -77,6 +78,8 @@ class EnvVarConfigLoader(ConfigLoader):
         if value.strip() == "":
             return None
 
+        if not isinstance(field_types, Iterable):
+            field_types = [field_types]
         # If we have type information, use it for conversion
         if key in field_types:
             field_type = field_types[key]
@@ -126,7 +129,7 @@ class EnvVarConfigLoader(ConfigLoader):
 
         config_data = {}
         for field in cls.__load_fields(config_class):
-            value = os.environ.get(f"{name.upper}_{field.name.upper()}")
+            value = os.environ.get(f"{name.upper()}_{field.name.upper()}")
             key = field.name
             if value is not None:
                 config_data[key] = cls.__convert_value(value, key, field.type)

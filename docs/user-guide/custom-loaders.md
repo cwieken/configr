@@ -33,7 +33,7 @@ Create a class that inherits from `FileConfigLoader` and implements the `load` m
 
 ```python
 from typing import Any, TypeVar
-from configr.loaders.base import FileConfigLoader
+from configr.loaders.loader_base import FileConfigLoader
 
 T = TypeVar('T')
 
@@ -96,7 +96,7 @@ import configparser
 from pathlib import Path
 from typing import Any, TypeVar
 
-from configr.loaders.base import FileConfigLoader
+from configr.loaders.loader_base import FileConfigLoader
 
 T = TypeVar('T')
 
@@ -118,11 +118,11 @@ class INIConfigLoader(FileConfigLoader):
     def as_dict(config: configparser.ConfigParser) -> dict[str, Any]:
         """
         Convert the parsed INI configuration to a nested dictionary.
-
+  
         This method transforms the ConfigParser representation into a dictionary structure
         where each section becomes a top-level key containing a dictionary of its options.
         Default values are included at the top level of the resulting dictionary.
-
+  
         Returns:
             dict[str, Any]: A nested dictionary representation of the configuration.
                 The outer dictionary keys are section names, and the inner dictionaries

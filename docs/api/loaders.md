@@ -205,7 +205,7 @@ Here's an example of how to create a loader for TOML files:
 
 ```python
 from typing import Any, TypeVar
-from configr.loaders.base import FileConfigLoader
+from configr.loaders.loader_base import FileConfigLoader
 
 T = TypeVar('T')
 
@@ -267,7 +267,7 @@ import configparser
 from pathlib import Path
 from typing import Any, TypeVar
 
-from configr.loaders.base import FileConfigLoader
+from configr.loaders.loader_base import FileConfigLoader
 
 T = TypeVar('T')
 
@@ -355,7 +355,7 @@ Remove a loader with `ConfigBase.remove_loader`:
 
 ```python
 from configr import ConfigBase
-from configr.loaders.yaml import YAMLConfigLoader
+from configr.loaders.loader_yaml import YAMLConfigLoader
 
 ConfigBase.remove_loader(YAMLConfigLoader)
 ```

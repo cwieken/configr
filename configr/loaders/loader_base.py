@@ -20,7 +20,8 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import Any, ClassVar, TypeVar
 
-from configr.exceptions import ConfigFileNotFoundError
+from configr.exceptions import ConfigFileNotFoundError, ConfigValidationError
+from configr.field_type_checker import FieldTypeChecker
 
 T = TypeVar('T')
 
@@ -52,6 +53,14 @@ class ConfigLoader(ABC):
             TypeError: If the config_class is not a dataclass.
         """
         pass
+
+    @classmethod
+    def check_types(cls, fields: dict[str, type], config_data: dict[str, Any]) -> None:
+        try:
+            FieldTypeChecker.check_types(fields, config_data)
+        except TypeError as exc:
+            raise ConfigValidationError(
+                f"Configuration validation failed: {exc}") from exc
 
 
 class FileConfigLoader(ConfigLoader, ABC):

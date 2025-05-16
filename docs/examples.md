@@ -375,7 +375,7 @@ This example demonstrates creating, registering and using a custom loader for TO
 ```python
 # toml_loader.py
 from typing import Any, TypeVar
-from configr.loaders.base import FileConfigLoader
+from configr.loaders.loader_base import FileConfigLoader
 
 T = TypeVar('T')
 

@@ -24,12 +24,11 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Generic, TypeVar, get_args
 
-from configr.exceptions import ConfigFileNotFoundError, ConfigValidationError
-from configr.field_type_checker import FieldTypeChecker
-from configr.loaders.base import ConfigLoader, FileConfigLoader
-from configr.loaders.env_var import EnvVarConfigLoader
-from configr.loaders.json import JSONConfigLoader
-from configr.loaders.yaml import YAMLConfigLoader
+from configr.exceptions import ConfigFileNotFoundError
+from configr.loaders.loader_base import ConfigLoader, FileConfigLoader
+from configr.loaders.loader_env_var import EnvVarConfigLoader
+from configr.loaders.loader_json import JSONConfigLoader
+from configr.loaders.loader_yaml import YAMLConfigLoader
 
 T = TypeVar('T')
 
@@ -132,11 +131,8 @@ class ConfigBase(Generic[T]):
         config_data = cls.__load_nested_dataclasses(fields, filtered_data)
 
         # Validate the types of the fields in the dataclass
-        try:
-            FieldTypeChecker.check_types(fields, filtered_data)
-        except TypeError as exc:
-            raise ConfigValidationError(
-                f"Configuration validation failed: {exc}") from exc
+        loader = cls._get_loader(config_class)
+        loader.check_types(fields, filtered_data)
 
         # Create an instance of the dataclass and return it
         return config_class(**config_data)

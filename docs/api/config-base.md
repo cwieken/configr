@@ -160,7 +160,7 @@ def remove_loader(cls, loader: type[ConfigLoader]) -> None:
 
 ```python
 from configr import ConfigBase
-from configr.loaders.yaml import YAMLConfigLoader
+from configr.loaders.loader_yaml import YAMLConfigLoader
 
 # Remove the YAML loader
 ConfigBase.remove_loader(YAMLConfigLoader)

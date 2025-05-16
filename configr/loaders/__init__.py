@@ -23,10 +23,3 @@ Example usage:
     # Will look for environment variables like DATABASE_HOST, DATABASE_PORT
     config = ConfigBase.load(DatabaseConfig)
 """
-# Check if PyYAML is available
-try:
-    import yaml
-
-    YAML_AVAILABLE = True
-except ImportError:
-    YAML_AVAILABLE = False

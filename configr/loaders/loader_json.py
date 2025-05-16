@@ -26,8 +26,8 @@ Example usage:
 import json
 from typing import Any
 
-from configr.loaders.base import FileConfigLoader
-from configr.loaders.yaml import T
+from configr.loaders.loader_base import FileConfigLoader
+from configr.loaders.loader_yaml import T
 
 
 class JSONConfigLoader(FileConfigLoader):
