@@ -24,6 +24,8 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Generic, TypeVar, get_args
 
+from typing_extensions import get_origin
+
 from configr.exceptions import ConfigFileNotFoundError
 from configr.loaders.loader_base import ConfigLoader, FileConfigLoader
 from configr.loaders.loader_env_var import EnvVarConfigLoader
@@ -197,6 +199,9 @@ class ConfigBase(Generic[T]):
         """
         for key, value in data.items():
             field_type = fields[key]
+            if get_origin(field_type) is not None:
+                if any(dataclasses.is_dataclass(arg) for arg in get_args(field_type)):
+                    field_type = next(arg for arg in get_args(field_type))
             if dataclasses.is_dataclass(field_type):
                 if isinstance(value, dict):
                     data[key] = cls.load(field_type, value)

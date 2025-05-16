@@ -81,7 +81,8 @@ def test_basic_loading(clean_env):
     assert config_data["use_ssl"] is True
 
     # This should not have been loaded as there's no env var
-    assert "username" not in config_data
+    # instead the default value should be used
+    assert config_data["username"] == "postgres"
 
 
 def test_type_conversion_explicit(clean_env):
@@ -137,7 +138,7 @@ def test_empty_values(clean_env):
 
 
 @patch.dict(os.environ, {})
-def _(clean_env):
+def test_nested_dataclass(clean_env):
     """Test loading configuration with nested dataclasses."""
     # Parent config
     os.environ["NESTED_NAME"] = "parent_name"
@@ -151,56 +152,24 @@ def _(clean_env):
     os.environ["NESTED_OPTIONAL_CHILD_SETTING_A"] = "opt_value_a"
     os.environ["NESTED_OPTIONAL_CHILD_SETTING_B"] = "24"
 
-    # Child in list (first element)
-    os.environ["NESTED_CHILDREN_LIST_0_SETTING_A"] = "list_a_1"
-    os.environ["NESTED_CHILDREN_LIST_0_SETTING_B"] = "101"
-
-    # Child in list (second element)
-    os.environ["NESTED_CHILDREN_LIST_1_SETTING_A"] = "list_a_2"
-    os.environ["NESTED_CHILDREN_LIST_1_SETTING_B"] = "102"
-
-    # Children in dictionary
-    os.environ["NESTED_CHILDREN_DICT_KEY1_SETTING_A"] = "dict_a_1"
-    os.environ["NESTED_CHILDREN_DICT_KEY1_SETTING_B"] = "201"
-    os.environ["NESTED_CHILDREN_DICT_KEY2_SETTING_A"] = "dict_a_2"
-    os.environ["NESTED_CHILDREN_DICT_KEY2_SETTING_B"] = "202"
-
     config_data = ConfigBase.load(NestedParentConfig)
 
     # Verify parent properties
-    assert config_data["name"] == "parent_name"
+    assert config_data.name == "parent_name"
 
     # Verify child properties
-    assert "child" in config_data
-    assert isinstance(config_data["child"], dict)
-    assert config_data["child"]["setting_a"] == "value_a"
-    assert config_data["child"]["setting_b"] == 42
-    assert config_data["child"]["setting_c"] is False
+    assert hasattr(config_data, "child")
+    assert isinstance(config_data.child, NestedChildConfig)
+    assert config_data.child.setting_a == "value_a"
+    assert config_data.child.setting_b == 42
+    assert config_data.child.setting_c is False
 
     # Verify optional child
-    assert "optional_child" in config_data
-    assert isinstance(config_data["optional_child"], dict)
-    assert config_data["optional_child"]["setting_a"] == "opt_value_a"
-    assert config_data["optional_child"]["setting_b"] == 24
-    assert "setting_c" not in config_data["optional_child"]  # Not provided in env vars
-
-    # Verify list children
-    assert "children_list" in config_data
-    assert isinstance(config_data["children_list"], list)
-    assert len(config_data["children_list"]) == 2
-    assert config_data["children_list"][0]["setting_a"] == "list_a_1"
-    assert config_data["children_list"][0]["setting_b"] == 101
-    assert config_data["children_list"][1]["setting_a"] == "list_a_2"
-    assert config_data["children_list"][1]["setting_b"] == 102
-
-    # Verify dict children
-    assert "children_dict" in config_data
-    assert isinstance(config_data["children_dict"], dict)
-    assert len(config_data["children_dict"]) == 2
-    assert config_data["children_dict"]["key1"]["setting_a"] == "dict_a_1"
-    assert config_data["children_dict"]["key1"]["setting_b"] == 201
-    assert config_data["children_dict"]["key2"]["setting_a"] == "dict_a_2"
-    assert config_data["children_dict"]["key2"]["setting_b"] == 202
+    assert hasattr(config_data, "optional_child")
+    assert isinstance(config_data.optional_child, NestedChildConfig)
+    assert config_data.optional_child.setting_a == "opt_value_a"
+    assert config_data.optional_child.setting_b == 24
+    # assert "setting_c" not in config_data["optional_child"]  # Not provided in env vars
 
 
 def test_uppercase_handling(clean_env):
@@ -311,22 +280,22 @@ def test_full_config_loading(clean_env):
     config_data = ConfigBase.load(AppConfig)
 
     # Verify top-level properties
-    assert config_data["name"] == "MyApp"
-    assert config_data["version"] == "1.0.0"
-    assert config_data["debug"] is True
+    assert config_data.name == "MyApp"
+    assert config_data.version == "1.0.0"
+    assert config_data.debug is True
 
     # Verify database section
-    assert "database" in config_data
-    assert isinstance(config_data["database"], dict)
-    assert config_data["database"]["host"] == "localhost"
-    assert config_data["database"]["port"] == 5432
-    assert config_data["database"]["username"] == "user"
-    assert config_data["database"]["password"] == "pass"
-    assert config_data["database"]["use_ssl"] is True
+    assert hasattr(config_data, "database")
+    assert isinstance(config_data.database, DatabaseConfig)
+    assert config_data.database.host == "localhost"
+    assert config_data.database.port == 5432
+    assert config_data.database.username == "user"
+    assert config_data.database.password == "pass"
+    assert config_data.database.use_ssl is True
 
     # Verify API section
-    assert "api" in config_data
-    assert isinstance(config_data["api"], dict)
-    assert config_data["api"]["url"] == "https://api.example.com"
-    assert config_data["api"]["timeout"] == 30
-    assert config_data["api"]["retry_count"] == 3
+    assert hasattr(config_data, "api")
+    assert isinstance(config_data.api, ApiConfig)
+    assert config_data.api.url == "https://api.example.com"
+    assert config_data.api.timeout == 30
+    assert config_data.api.retry_count == 3
