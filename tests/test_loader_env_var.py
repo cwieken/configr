@@ -1,6 +1,6 @@
 import dataclasses
 import os
-from typing import Optional, List, Dict
+from typing import Optional
 from unittest.mock import patch
 
 import pytest
@@ -33,8 +33,10 @@ class NestedParentConfig:
     name: str
     child: NestedChildConfig
     optional_child: Optional[NestedChildConfig] = None
-    children_list: List[NestedChildConfig] = dataclasses.field(default_factory=list)
-    children_dict: Dict[str, NestedChildConfig] = dataclasses.field(default_factory=dict)
+    children_list: list[NestedChildConfig] = dataclasses.field(default_factory=list)
+    children_dict: dict[str, NestedChildConfig] = dataclasses.field(
+        default_factory=dict
+    )
 
 
 @pytest.fixture
@@ -128,7 +130,7 @@ def test_boolean_conversions(clean_env):
 def test_empty_values(clean_env):
     """Test handling of empty values."""
     os.environ["DATABASE_HOST"] = ""
-    os.environ["DATABASE_PASSWORD"] = "   "  # Whitespace
+    os.environ["DATABASE_PASSWORD"] = "   "  # Whitespace  # noqa: S105
 
     config_data = EnvVarConfigLoader.load("DATABASE", DatabaseConfig)
 
@@ -169,7 +171,8 @@ def test_nested_dataclass(clean_env):
     assert isinstance(config_data.optional_child, NestedChildConfig)
     assert config_data.optional_child.setting_a == "opt_value_a"
     assert config_data.optional_child.setting_b == 24
-    # assert "setting_c" not in config_data["optional_child"]  # Not provided in env vars
+    # Should use default value for setting_c (not provided in env vars)
+    assert config_data.optional_child.setting_c is True
 
 
 def test_uppercase_handling(clean_env):
@@ -190,7 +193,7 @@ def test_integration_with_config_base(clean_env, original_loaders):
     os.environ["DATABASE_HOST"] = "db.example.com"
     os.environ["DATABASE_PORT"] = "3306"
     os.environ["DATABASE_USERNAME"] = "admin"
-    os.environ["DATABASE_PASSWORD"] = "secret"
+    os.environ["DATABASE_PASSWORD"] = "secret"  # noqa: S105
     os.environ["DATABASE_USE_SSL"] = "true"
 
     # Configure ConfigBase to use EnvVarConfigLoader
@@ -203,7 +206,7 @@ def test_integration_with_config_base(clean_env, original_loaders):
     assert config.host == "db.example.com"
     assert config.port == 3306
     assert config.username == "admin"
-    assert config.password == "secret"
+    assert config.password == "secret"  # noqa: S105
     assert config.use_ssl is True
 
 
@@ -253,7 +256,7 @@ def test_full_config_loading(clean_env):
     os.environ["APP_DATABASE_HOST"] = "localhost"
     os.environ["APP_DATABASE_PORT"] = "5432"
     os.environ["APP_DATABASE_USERNAME"] = "user"
-    os.environ["APP_DATABASE_PASSWORD"] = "pass"
+    os.environ["APP_DATABASE_PASSWORD"] = "pass"  # noqa: S105
     os.environ["APP_DATABASE_USE_SSL"] = "true"
 
     # API config section
@@ -290,7 +293,7 @@ def test_full_config_loading(clean_env):
     assert config_data.database.host == "localhost"
     assert config_data.database.port == 5432
     assert config_data.database.username == "user"
-    assert config_data.database.password == "pass"
+    assert config_data.database.password == "pass"  # noqa: S105
     assert config_data.database.use_ssl is True
 
     # Verify API section

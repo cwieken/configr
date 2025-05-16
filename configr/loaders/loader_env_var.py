@@ -24,8 +24,9 @@ Example usage:
 """
 import dataclasses
 import os
+from collections.abc import Iterable
 from dataclasses import Field, is_dataclass
-from typing import Any, Optional, Iterable, get_args, get_origin
+from typing import Any, Optional, get_args, get_origin
 
 from configr.loaders.loader_base import ConfigLoader
 from configr.loaders.loader_yaml import T
@@ -129,8 +130,12 @@ class EnvVarConfigLoader(ConfigLoader):
 
         config_data = {}
         for field in cls.__load_fields(config_class):
-            value = os.environ.get(f"{name.upper()}_{field.name.upper()}",
-                                   field.default if field.default is not dataclasses.MISSING else None)
+            if field.default is not dataclasses.MISSING:
+                default_value = field.default
+            else:
+                default_value = None
+            env_var_name = f"{name.upper()}_{field.name.upper()}"
+            value = os.environ.get(env_var_name, default_value)
             key = field.name
             if value is not None and isinstance(value, str):
                 config_data[key] = cls.__convert_value(value, key, field.type)

@@ -22,9 +22,7 @@ Typical usage:
 import dataclasses
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Generic, TypeVar, get_args
-
-from typing_extensions import get_origin
+from typing import Any, Generic, TypeVar, get_args, get_origin
 
 from configr.exceptions import ConfigFileNotFoundError
 from configr.loaders.loader_base import ConfigLoader, FileConfigLoader

@@ -3,7 +3,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import Optional
 
 import pytest
 
@@ -16,7 +16,9 @@ from configr.loaders.loader_yaml import YAMLConfigLoader
 try:
     import yaml  # Attempt to import pyyaml
 except (ImportError, ModuleNotFoundError):
-    pytest.fail("The pyyaml module is not installed. Please install it to run these tests.")
+    pytest.fail(
+        "The pyyaml module is not installed. Please install it to run these tests."
+    )
 
 
 @config_class(file_name="database")
@@ -40,8 +42,10 @@ class NestedParentConfig:
     name: str
     child: NestedChildConfig
     optional_child: Optional[NestedChildConfig] = None
-    children_list: List[NestedChildConfig] = dataclasses.field(default_factory=list)
-    children_dict: Dict[str, NestedChildConfig] = dataclasses.field(default_factory=dict)
+    children_list: list[NestedChildConfig] = dataclasses.field(default_factory=list)
+    children_dict: dict[str, NestedChildConfig] = dataclasses.field(
+        default_factory=dict
+    )
 
 
 @pytest.fixture
@@ -232,7 +236,7 @@ def test_integration_with_config_base(config_dir, create_yaml_file, original_loa
     assert config.host == 'db.example.com'
     assert config.port == 3306
     assert config.username == 'admin'
-    assert config.password == 'secret'
+    assert config.password == 'secret'  # noqa: S105
     assert config.use_ssl is True
 
 

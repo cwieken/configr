@@ -56,6 +56,16 @@ class ConfigLoader(ABC):
 
     @classmethod
     def check_types(cls, fields: dict[str, type], config_data: dict[str, Any]) -> None:
+        """
+        Check the types of configuration data against field definitions.
+
+        Args:
+            fields: Dictionary mapping field names to their types
+            config_data: Configuration data to validate
+
+        Raises:
+            ConfigValidationError: If type validation fails
+        """
         try:
             FieldTypeChecker.check_types(fields, config_data)
         except TypeError as exc:
