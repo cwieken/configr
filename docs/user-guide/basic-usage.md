@@ -150,6 +150,30 @@ For different environments (development, testing, production), you can:
         db_config.port = int(os.environ["DB_PORT"])
     ```
 
+3. **Use the built-in EnvVarConfigLoader directly**:
+
+    ```python
+    from configr import config_class, ConfigBase
+    
+    # Don't specify file_name to use environment variables
+    @config_class()
+    class DatabaseConfig:
+        host: str = "localhost"
+        port: int = 5432
+        username: str = None
+        password: str = None
+        database: str = None
+    
+    # Set environment variables:
+    # export DATABASECONFIG_HOST=prod-db.example.com
+    # export DATABASECONFIG_PORT=5432
+    # export DATABASECONFIG_USERNAME=admin
+    # etc.
+    
+    # Load from environment variables
+    db_config = ConfigBase.load(DatabaseConfig)
+    ```
+
 ## Working with Nested Configurations
 
 Configr automatically handles nested dataclass structures in your configuration hierarchy. This allows you to organize

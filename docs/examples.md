@@ -219,6 +219,68 @@ print(f"App debug mode: {app_config.debug}")
 }
 ```
 
+## Environment Variable Configuration
+
+### Loading Configuration from Environment Variables
+
+This example shows how to use the built-in environment variable loader to configure your application.
+
+```python
+# config.py
+from configr import config_class, ConfigBase
+from dataclasses import dataclass
+
+
+@dataclass
+class DatabaseConfig:
+    host: str = "localhost"
+    port: int = 5432
+    username: str = "postgres"
+    password: str
+    database: str
+
+
+# Use the EnvVarConfigLoader by not specifying a file_name
+# and not having a corresponding config file for the other 
+# loaders (e.g. no app_config.yaml nor app_config.json)
+@config_class()
+class AppConfig:
+    app_name: str
+    debug: bool = False
+    log_level: str = "INFO"
+    database: DatabaseConfig = None
+
+
+# Load from environment variables
+app_config = ConfigBase.load(AppConfig)
+
+print(f"App: {app_config.app_name}")
+print(f"Debug: {app_config.debug}")
+print(f"Database: {app_config.database.host}:{app_config.database.port}/{app_config.database.database}")
+```
+
+**Setting environment variables:**
+
+```bash
+# Set top-level configuration
+export APPCONFIG_APP_NAME="MyApp"
+export APPCONFIG_DEBUG="true"
+export APPCONFIG_LOG_LEVEL="DEBUG"
+
+# Set nested configuration
+export APPCONFIG_DATABASE_HOST="db.example.com"
+export APPCONFIG_DATABASE_PORT="5432"
+export APPCONFIG_DATABASE_USERNAME="admin"
+export APPCONFIG_DATABASE_PASSWORD="secure_password"
+export APPCONFIG_DATABASE_DATABASE="production_db"
+```
+
+The environment variable loader automatically converts:
+
+- Boolean strings ("true", "false", "1", "0") to boolean values
+- Numeric strings to integers or floats as appropriate
+- Nested dataclasses using underscore-separated prefixes
+
 ## Environment-Specific Configuration
 
 ### Dynamic Configuration Based on Environment

@@ -9,13 +9,15 @@ Configr includes the following loaders by default:
 
 - `JSONConfigLoader`: For `.json` files
 - `YAMLConfigLoader`: For `.yaml` and `.yml` files (requires PyYAML)
+- `EnvVarConfigLoader`: For loading configuration from environment variables
 
 These loaders are registered in the `ConfigBase._loaders` list:
 
 ```python
 _loaders: list[type[ConfigLoader]] = [
     JSONConfigLoader,
-    YAMLConfigLoader
+    YAMLConfigLoader,
+    EnvVarConfigLoader
 ]
 ```
 

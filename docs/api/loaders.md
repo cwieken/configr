@@ -195,6 +195,73 @@ password: secure_password
 database: my_app
 ```
 
+### EnvVarConfigLoader
+
+Loader for environment variable configuration.
+
+```python
+from configr.loaders.loader_env_var import EnvVarConfigLoader
+
+
+class EnvVarConfigLoader(ConfigLoader):
+    """
+    Loader for environment variable configuration.
+    
+    This class provides functionality to load configuration data from environment
+    variables. Environment variables should follow the pattern:
+    {CONFIG_NAME}_{FIELD_NAME} where both parts are uppercase.
+    
+    For nested dataclasses, the pattern extends to:
+    {CONFIG_NAME}_{PARENT_FIELD}_{CHILD_FIELD}
+    
+    Type conversion is performed automatically for:
+    - Booleans: "true", "false", "1", "0" 
+    - Integers: Numeric strings
+    - Floats: Decimal numeric strings
+    - Lists: Comma-separated values
+    """
+
+    @classmethod
+    def load(cls, name: str, config_class: type[T]) -> dict[str, Any]:
+        """
+        Load configuration from environment variables.
+        
+        Args:
+            name (str): The prefix for environment variables (converted to uppercase).
+            config_class (type[T]): The dataclass type to map the configuration data to.
+            
+        Returns:
+            dict[str, Any]: A dictionary containing the loaded configuration data.
+        """
+        # Implementation details
+```
+
+Example usage:
+
+```python
+from configr import config_class, ConfigBase
+
+
+# When no file_name is specified, and no file with ending for
+# configured loader exists, EnvVarConfigLoader is used
+@config_class()
+class AppConfig:
+    debug: bool = False
+    host: str = "localhost"
+    port: int = 8080
+    database_url: str = None
+
+
+# Set environment variables
+# export APPCONFIG_DEBUG=true
+# export APPCONFIG_HOST=0.0.0.0
+# export APPCONFIG_PORT=3000
+# export APPCONFIG_DATABASE_URL=postgresql://localhost/mydb
+
+# Load from environment variables
+config = ConfigBase.load(AppConfig)
+```
+
 ## Creating Custom Loaders
 
 You can extend Configr with support for additional file formats by creating custom loaders.
