@@ -24,7 +24,7 @@ exclude = [
     ".pytype", ".tox", "__pypackages__", ".bzr", ".eggs",
 ]
 
-include = ["src/**/*.py", "scripts/**/*.py"]
+include = ["src/**/*.py", "scripts/**/*.py", "configr/**/*.py"]
 
 [lint]
 # Enable all rules from these categories

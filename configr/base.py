@@ -24,8 +24,9 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Generic, TypeVar, get_args, get_origin
 
-from configr.exceptions import ConfigFileNotFoundError
+from configr.exceptions import ConfigFileNotFoundError, ConfigLoadError
 from configr.loaders.loader_base import ConfigLoader, FileConfigLoader
+from configr.loaders.loader_dotenv import DotEnvConfigLoader
 from configr.loaders.loader_env_var import EnvVarConfigLoader
 from configr.loaders.loader_json import JSONConfigLoader
 from configr.loaders.loader_yaml import YAMLConfigLoader
@@ -39,10 +40,12 @@ class ConfigBase(Generic[T]):
 
     Handles loading configuration from files and conversion to dataclasses.
     """
+
     _loaders: list[type[ConfigLoader]] = [
         JSONConfigLoader,
         YAMLConfigLoader,
-        EnvVarConfigLoader
+        DotEnvConfigLoader,
+        EnvVarConfigLoader,
     ]
 
     @classmethod
@@ -167,7 +170,7 @@ class ConfigBase(Generic[T]):
         return {k: v for k, v in raw_config_data.items() if k in field_names}
 
     @classmethod
-    def __load_config_data(cls, config_class):
+    def __load_config_data(cls, config_class: type[T]) -> dict:
         """
         Load configuration data from file or loader and return as a dictionary.
 
@@ -177,9 +180,13 @@ class ConfigBase(Generic[T]):
         Returns:
             dict: The loaded configuration data.
         """
-        name = cls._get_config_file_name(config_class)
         loader = cls._get_loader(config_class)
+        name = loader.get_config_name(config_class)
         config_data = loader.load(name, config_class)
+
+        if not config_data:
+            raise ConfigLoadError(f"Failed to load configuration for {name} "
+                                  f"using {loader.__name__}")
 
         return config_data
 
@@ -238,7 +245,7 @@ class ConfigBase(Generic[T]):
             ValueError: If no valid loader is found.
         """
         for loader in cls.get_available_file_loaders():
-            if loader.config_file_exists(cls._get_config_file_name(config_class)):
+            if loader.config_file_exists(loader.get_config_file_name(config_class)):
                 return loader
 
         # If file loader is expected but could not be found,
@@ -260,13 +267,3 @@ class ConfigBase(Generic[T]):
             return _non_file_loaders[0]
 
         raise ValueError(f"No valid loader found for {config_class}")
-
-    @classmethod
-    def _get_config_file_name(cls, config_class: type) -> str:
-        """Get file name from config class."""
-        if hasattr(config_class, '_config_file_name'):
-            file_name = config_class._config_file_name
-        else:
-            raise ValueError(f"{config_class.__name__} must have a "
-                             f"_config_file_name attribute")
-        return file_name

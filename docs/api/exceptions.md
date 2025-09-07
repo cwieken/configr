@@ -45,11 +45,29 @@ class ConfigValidationError(ValueError):
 
 This exception is raised when the configuration data fails validation. It inherits from the built-in `ValueError` class.
 
+### ConfigLoadError
+
+```python
+class ConfigLoadError(ValueError):
+    """Raised when configuration loading fails."""
+    pass
+```
+
+This exception is raised when configuration loading fails for reasons other than file not found or validation errors. It inherits from the built-in `ValueError` class.
+
 #### When It's Raised
 
 - When the types in the configuration file don't match the types defined in the configuration class
 - When required fields are missing in the configuration data
 - When custom validation in `__post_init__` fails
+
+### ConfigLoadError
+
+#### When It's Raised
+
+- When a configuration loader fails to load data for reasons other than file not found
+- When configuration data is empty or invalid after loading
+- When there are issues with the loading process itself
 
 #### Example
 
@@ -142,7 +160,8 @@ The exception hierarchy in Configr is designed to be intuitive and integrate wel
 BaseException
  └── Exception
       ├── ValueError
-      │    └── ConfigValidationError
+      │    ├── ConfigValidationError
+      │    └── ConfigLoadError
       └── OSError
            └── FileNotFoundError
                 └── ConfigFileNotFoundError

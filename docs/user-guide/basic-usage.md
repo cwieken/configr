@@ -174,6 +174,32 @@ For different environments (development, testing, production), you can:
     db_config = ConfigBase.load(DatabaseConfig)
     ```
 
+4. **Use .env files with the built-in DotEnvConfigLoader**:
+
+    ```python
+    from configr import config_class, ConfigBase
+    
+    @config_class(file_name="database")
+    class DatabaseConfig:
+        host: str = "localhost"
+        port: int = 5432
+        username: str = None
+        password: str = None
+        database: str = None
+    
+    # Create _config/.env file with:
+    # DATABASE_HOST=prod-db.example.com
+    # DATABASE_PORT=5432
+    # DATABASE_USERNAME=admin
+    # DATABASE_PASSWORD=secure_password
+    # DATABASE_DATABASE=production_db
+    
+    # Load from .env file (requires python-dotenv)
+    db_config = ConfigBase.load(DatabaseConfig)
+    ```
+
+    **Note**: .env file support requires installing the dotenv extra: `pip install py-configr[dotenv]`
+
 ## Working with Nested Configurations
 
 Configr automatically handles nested dataclass structures in your configuration hierarchy. This allows you to organize

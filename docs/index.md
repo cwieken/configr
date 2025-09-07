@@ -19,7 +19,8 @@ to work with.
 
 - **Type Safety**: Leverage Python's type hints for configuration validation
 - **Dataclass Integration**: Seamlessly map configuration files to Python dataclasses
-- **Multiple Format Support**: Load configuration from JSON and YAML
+- **Multiple Format Support**: Load configuration from JSON, YAML, and .env files
+- **Environment Variables**: Built-in support for environment variable configuration
 - **Extendable**: Easily add support for custom configuration formats through the loader system, such as TOML or XML
 - **Nested Configuration**: Support for complex nested dataclass structures
 - **Validation**: Strict type checking for all configuration values
@@ -70,6 +71,18 @@ For YAML support, install with the YAML extra:
 
 ```bash
 pip install py-configr[yaml]
+```
+
+For .env file support, install with the dotenv extra:
+
+```bash
+pip install py-configr[dotenv]
+```
+
+You can also install multiple extras at once:
+
+```bash
+pip install py-configr[yaml,dotenv]
 ```
 
 ## Why Choose Configr?

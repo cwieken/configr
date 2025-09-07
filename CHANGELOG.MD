@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2025-09-07
+
+### Added
+
+- Support for .env file configuration through new `DotEnvConfigLoader`
+- Added optional dependency on `python-dotenv` for .env file support
+- New `ConfigLoadError` exception for handling configuration loading failures
+- Improved error handling for failed configuration loads
+
+### Changed
+
+- Enhanced ConfigBase to automatically include the DotEnvConfigLoader
+
 ## [0.2.1] - 2025-09-07
 
 ### Fixed

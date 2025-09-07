@@ -72,6 +72,21 @@ class ConfigLoader(ABC):
             raise ConfigValidationError(
                 f"Configuration validation failed: {exc}") from exc
 
+    @classmethod
+    def get_config_file_name(cls, config_class: type) -> str:
+        """Get file name from config class."""
+        if hasattr(config_class, '_config_file_name'):
+            file_name = config_class._config_file_name
+        else:
+            raise ValueError(f"{config_class.__name__} must have a "
+                             f"_config_file_name attribute")
+        return file_name
+
+    @classmethod
+    def get_config_name(cls, config_class: type) -> str:
+        """Get config name."""
+        return cls.get_config_file_name(config_class)
+
 
 class FileConfigLoader(ConfigLoader, ABC):
     """

@@ -262,6 +262,101 @@ class AppConfig:
 config = ConfigBase.load(AppConfig)
 ```
 
+### DotEnvConfigLoader
+
+Loader for .env configuration files. Requires python-dotenv to be installed.
+
+```python
+class DotEnvConfigLoader(FileConfigLoader):
+    """
+    Loader for .env configuration files.
+    
+    This class provides functionality to load configuration data from .env files
+    and map it to the fields of a dataclass. It leverages the environment variable
+    processing logic for type conversion and nested structure handling.
+    """
+    ext: list[str] = ['.env']  # Supported file extensions for .env configuration files.
+
+    @classmethod
+    def load(cls, name: str, config_class: type[T]) -> dict[str, Any]:
+        """
+        Load .env configuration from the specified path.
+        
+        Args:
+            name (str): The prefix for environment variable names (used for variable naming).
+            config_class (type[T]): The dataclass type to map the configuration data to.
+            
+        Returns:
+            dict[str, Any]: A dictionary containing the loaded configuration data.
+            
+        Raises:
+            ImportError: If python-dotenv is not installed.
+            FileNotFoundError: If the .env file does not exist in the config directory.
+        """
+        # Implementation details
+
+    @classmethod
+    def config_file_exists(cls, name: str) -> bool:
+        """
+        Check if .env file exists in the config directory.
+        
+        Args:
+            name (str): The configuration name (not used for .env files).
+            
+        Returns:
+            bool: True if .env file exists, False otherwise.
+        """
+        # Implementation details
+
+    @classmethod
+    def get_config_name(cls, config_class: type) -> str:
+        """
+        Get config name from the dataclass name.
+        
+        Args:
+            config_class (type): The dataclass type to extract the name from.
+            
+        Returns:
+            str: The configuration name in uppercase, derived from the class name.
+        """
+        # Implementation details
+```
+
+Example .env configuration file:
+
+```bash
+# Configuration for AppConfig class (uses APP_ prefix)
+APP_DEBUG=true
+APP_HOST=0.0.0.0
+APP_PORT=3000
+APP_DATABASE_URL=postgresql://localhost/mydb
+
+# Nested configuration example
+APP_DATABASE_HOST=localhost
+APP_DATABASE_PORT=5432
+APP_DATABASE_USERNAME=admin
+APP_DATABASE_PASSWORD=secret
+```
+
+Example usage:
+
+```python
+from configr import config_class, ConfigBase
+from typing import Optional
+
+
+@config_class(file_name=".env")
+class AppConfig:
+    debug: bool = False
+    host: str = "localhost"
+    port: int = 8080
+    database_url: Optional[str] = None
+
+
+# Load from .env file (requires python-dotenv)
+config = ConfigBase.load(AppConfig)
+```
+
 ## Creating Custom Loaders
 
 You can extend Configr with support for additional file formats by creating custom loaders.

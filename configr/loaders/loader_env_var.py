@@ -26,7 +26,8 @@ import dataclasses
 import os
 from collections.abc import Iterable
 from dataclasses import Field, is_dataclass
-from typing import Any, Optional, get_args, get_origin
+from types import UnionType
+from typing import Any, Union, get_args, get_origin
 
 from configr.loaders.loader_base import ConfigLoader
 from configr.loaders.loader_yaml import T
@@ -79,25 +80,31 @@ class EnvVarConfigLoader(ConfigLoader):
         if value.strip() == "":
             return None
 
+        # Keep original behavior: if field_types isn't iterable, wrap it (even though
+        # the signature says dict[str, type]). This preserves existing semantics.
         if not isinstance(field_types, Iterable):
             field_types = [field_types]
+
         # If we have type information, use it for conversion
         if key in field_types:
             field_type = field_types[key]
+            # Normalize Optional[T] / T | None to its base T
+            field_type = cls._unwrap_optional(field_type)
 
-            # Handle basic types
-            if isinstance(field_type, bool) or field_type == Optional[bool]:
+            # Handle basic types (compare types with identity, not isinstance)
+            if field_type is bool:
                 return value.lower() in ('true', 'yes', 'y', '1')
-            elif isinstance(field_type, int) or field_type == Optional[int]:
+            elif field_type is int:
                 return int(value)
-            elif isinstance(field_type, float) or field_type == Optional[float]:
+            elif field_type is float:
                 return float(value)
 
         # Default string conversion logic (without type hints)
         # Try to convert to appropriate Python type
-        if value.lower() in ('true', 'yes', 'y', '1'):
+        low = value.lower()
+        if low in ('true', 'yes', 'y', '1'):
             return True
-        elif value.lower() in ('false', 'no', 'n', '0'):
+        elif low in ('false', 'no', 'n', '0'):
             return False
 
         # Try to convert to number if it looks like one
@@ -110,8 +117,20 @@ class EnvVarConfigLoader(ConfigLoader):
             # Return as string if no other conversion works
             return value
 
+    @staticmethod
+    def _unwrap_optional(t: type) -> type:
+        """Return the base type if t is Optional, otherwise return t itself."""
+        origin = get_origin(t)
+        if origin in (Union, UnionType):
+            args = get_args(t)
+            if any(a is type(None) for a in args):
+                non_none = [a for a in args if a is not type(None)]
+                if len(non_none) == 1:
+                    return non_none[0]
+        return t
+
     @classmethod
-    def load(cls, name: str, config_class: type[T]) -> dict[str, Any]:
+    def load(cls, name: str | None, config_class: type[T]) -> dict[str, Any]:
         """
         Load configuration data from environment variables.
 
@@ -134,7 +153,11 @@ class EnvVarConfigLoader(ConfigLoader):
                 default_value = field.default
             else:
                 default_value = None
-            env_var_name = f"{name.upper()}_{field.name.upper()}"
+            if name:
+                env_var_name = f"{name.upper()}_{field.name.upper()}"
+            else:
+                env_var_name = field.name.upper()
+
             value = os.environ.get(env_var_name, default_value)
             key = field.name
             if value is not None and isinstance(value, str):

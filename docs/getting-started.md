@@ -16,6 +16,18 @@ If you want to use YAML configuration files, you'll need to install with the YAM
 pip install py-configr[yaml]
 ```
 
+If you want to use .env configuration files, you'll need to install with the dotenv extra:
+
+```bash
+pip install py-configr[dotenv]
+```
+
+You can also install multiple extras at once:
+
+```bash
+pip install py-configr[yaml,dotenv]
+```
+
 ## Basic Setup
 
 1. Create a configuration directory in your project (default is `_config/`)
@@ -109,6 +121,17 @@ debug: true
 log_level: DEBUG
 max_connections: 50
 ```
+
+### .env Example
+
+```bash
+# Configuration for AppConfig class
+APP_DEBUG=true
+APP_LOG_LEVEL=DEBUG
+APP_MAX_CONNECTIONS=50
+```
+
+**Note**: .env files use environment variable naming with the class name as prefix (e.g., `APP_` for `AppConfig`). Requires the dotenv extra: `pip install py-configr[dotenv]`
 
 ## Handling Missing Files and Validation Errors
 

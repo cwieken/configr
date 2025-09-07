@@ -281,6 +281,87 @@ The environment variable loader automatically converts:
 - Numeric strings to integers or floats as appropriate
 - Nested dataclasses using underscore-separated prefixes
 
+## .env File Configuration
+
+### Loading Configuration from .env Files
+
+This example shows how to use .env files for configuration management, which is particularly useful for local
+development and containerized applications.
+
+```python
+# config.py
+from configr import config_class, ConfigBase
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
+class DatabaseCredentials:
+    username: str
+    password: str
+
+
+@dataclass
+class RedisConfig:
+    host: str = "localhost"
+    port: int = 6379
+    password: Optional[str] = None
+
+
+@config_class(file_name=".env")
+class AppConfig:
+    debug: bool = False
+    log_level: str = "INFO"
+    secret_key: str
+    database_url: str
+    database_credentials: Optional[DatabaseCredentials] = None
+    redis: Optional[RedisConfig] = None
+
+
+# Load from .env file (requires python-dotenv)
+app_config = ConfigBase.load(AppConfig)
+
+print(f"App debug mode: {app_config.debug}")
+print(f"Log level: {app_config.log_level}")
+print(f"Database URL: {app_config.database_url}")
+if app_config.database_credentials:
+    print(f"Database user: {app_config.database_credentials.username}")
+if app_config.redis:
+    print(f"Redis host: {app_config.redis.host}:{app_config.redis.port}")
+```
+
+**Configuration file (`_config/.env`):**
+
+```bash
+# Application settings (uses APP_ prefix from class name AppConfig)
+APP_DEBUG=true
+APP_LOG_LEVEL=DEBUG
+APP_SECRET_KEY=your-secret-key-here
+APP_DATABASE_URL=postgresql://localhost:5432/myapp
+
+# Database credentials (nested dataclass)
+APP_DATABASE_CREDENTIALS_USERNAME=admin
+APP_DATABASE_CREDENTIALS_PASSWORD=secure_password
+
+# Redis configuration (nested dataclass)
+APP_REDIS_HOST=redis.example.com
+APP_REDIS_PORT=6379
+APP_REDIS_PASSWORD=redis_secret
+```
+
+**Key features of .env configuration:**
+
+- **Environment variable format**: Uses the same naming convention as EnvVarConfigLoader
+- **Nested dataclass support**: Handles complex nested structures with underscore separation
+- **Type conversion**: Automatically converts strings to appropriate types (bool, int, etc.)
+- **Local development friendly**: Perfect for keeping sensitive data out of version control
+
+**Installation requirement:**
+
+```bash
+pip install py-configr[dotenv]
+```
+
 ## Environment-Specific Configuration
 
 ### Dynamic Configuration Based on Environment

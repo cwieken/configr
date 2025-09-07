@@ -74,7 +74,7 @@ from configr import ConfigBase
 
 # Get all available loaders
 loaders = ConfigBase.get_available_loaders()
-print(loaders)  # [JSONConfigLoader, YAMLConfigLoader]
+print(loaders)  # [JSONConfigLoader, YAMLConfigLoader, DotEnvConfigLoader, EnvVarConfigLoader]
 ```
 
 ### `get_available_file_loaders`
@@ -97,7 +97,7 @@ from configr import ConfigBase
 
 # Get all available file loaders
 file_loaders = ConfigBase.get_available_file_loaders()
-print(file_loaders)  # [JSONConfigLoader, YAMLConfigLoader]
+print(file_loaders)  # [JSONConfigLoader, YAMLConfigLoader, DotEnvConfigLoader]
 ```
 
 ### `add_loader`
@@ -189,6 +189,7 @@ An instance of the specified dataclass with loaded configuration.
 - `TypeError`: If `config_class` is not a dataclass.
 - `ConfigFileNotFoundError`: If the configuration file is not found.
 - `ConfigValidationError`: If the configuration fails validation.
+- `ConfigLoadError`: If the configuration loading fails.
 
 #### Example
 
@@ -229,7 +230,7 @@ Load configuration data from file or loader and return as a dictionary.
 
 ```python
 @classmethod
-def __load_config_data(cls, config_class):
+def __load_config_data(cls, config_class: type[T]) -> dict:
 ```
 
 ### `__filter_fields`
@@ -259,14 +260,7 @@ Determine the appropriate loader for the given configuration class.
 def _get_loader(cls, config_class: type) -> type[ConfigLoader]:
 ```
 
-### `_get_config_file_name`
 
-Get file name from config class.
-
-```python
-@classmethod
-def _get_config_file_name(cls, config_class: type) -> str:
-```
 
 ## Implementation Details
 

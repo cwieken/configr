@@ -17,6 +17,8 @@ Typical usage:
     except ConfigValidationError:
         # Handle invalid configuration values
 """
+
+
 class ConfigFileNotFoundError(FileNotFoundError):
     """Raised when a configuration file is not found."""
     pass
@@ -24,4 +26,9 @@ class ConfigFileNotFoundError(FileNotFoundError):
 
 class ConfigValidationError(ValueError):
     """Raised when configuration validation fails."""
+    pass
+
+
+class ConfigLoadError(ValueError):
+    """Raised when configuration loading fails."""
     pass
