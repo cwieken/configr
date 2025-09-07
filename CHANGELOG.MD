@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.2.0] - Unreleased
+## [0.2.1] - 2025-09-07
+
+### Fixed
+
+- Issue where build package does not include loaders.
+
+## [0.2.0] - 2025-05-16
 
 ### Added
 

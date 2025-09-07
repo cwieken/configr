@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "py-configr"
-version = "0.2.0"
+version = "0.2.1"
 description = "A flexible, type-safe configuration management library for Python"
 readme = "README.md"
 authors = [{ name = "Corinna Wieken", email = "5384689+cwieken@users.noreply.github.com" }]
@@ -24,5 +24,7 @@ yaml = ["pyyaml>=6.0"]
 "Homepage" = "https://github.com/cwieken/configr"
 "Bug Tracker" = "https://github.com/cwieken/configr/issues"
 
-[tool.setuptools]
-packages = ["configr"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["configr*"]
+exclude = ["tests*"]
