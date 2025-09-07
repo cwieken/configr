@@ -872,7 +872,8 @@ to work with.</p>
 <ul>
 <li><strong>Type Safety</strong>: Leverage Python's type hints for configuration validation</li>
 <li><strong>Dataclass Integration</strong>: Seamlessly map configuration files to Python dataclasses</li>
-<li><strong>Multiple Format Support</strong>: Load configuration from JSON and YAML</li>
+<li><strong>Multiple Format Support</strong>: Load configuration from JSON, YAML, and .env files</li>
+<li><strong>Environment Variables</strong>: Built-in support for environment variable configuration</li>
 <li><strong>Extendable</strong>: Easily add support for custom configuration formats through the loader system, such as TOML or XML</li>
 <li><strong>Nested Configuration</strong>: Support for complex nested dataclass structures</li>
 <li><strong>Validation</strong>: Strict type checking for all configuration values</li>
@@ -911,6 +912,12 @@ to work with.</p>
 </code></pre></div>
 <p>For YAML support, install with the YAML extra:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>py-configr<span class="o">[</span>yaml<span class="o">]</span>
+</code></pre></div>
+<p>For .env file support, install with the dotenv extra:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pip<span class="w"> </span>install<span class="w"> </span>py-configr<span class="o">[</span>dotenv<span class="o">]</span>
+</code></pre></div>
+<p>You can also install multiple extras at once:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pip<span class="w"> </span>install<span class="w"> </span>py-configr<span class="o">[</span>yaml,dotenv<span class="o">]</span>
 </code></pre></div>
 <h2 id="why-choose-configr">Why Choose Configr?</h2>
 <ul>
