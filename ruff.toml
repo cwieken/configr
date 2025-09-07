@@ -4,6 +4,28 @@ target-version = "py310"
 # Line length configuration
 line-length = 88
 
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    # ignore Unit Tests because pytest need methods with lower letter. Example: test....
+    "tests/**/*.py",
+    # ignore common project directories
+    "_LOGS", "_CONFIG", "site-packages", "docs",
+    # ignore build directories
+    "build", "dist", "_build",
+    # ignore project files from PyCharm, Pixi, VS-Code
+    ".pixi", ".vscode", ".idea",
+    # ignore meditec used Source Code Management systems
+    ".git", ".svn", ".git-rewrite",
+    # ignore cached files
+    ".pytest_cache", ".mypy_cache", ".ruff_cache",
+    # ignore virtual environments
+    ".pyenv", ".venv", "venv", ".direnv",
+    # ignore other typical file types
+    ".pytype", ".tox", "__pypackages__", ".bzr", ".eggs",
+]
+
+include = ["src/**/*.py", "scripts/**/*.py"]
+
 [lint]
 # Enable all rules from these categories
 select = [

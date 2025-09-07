@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- Issue where build package does not include loaders.
+- Fixed issue where build package does not include loaders
 
 ## [0.2.0] - 2025-05-16
 
