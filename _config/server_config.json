@@ -1,0 +1,17 @@
+{
+  "name": "ProductionServer",
+  "port": 8080,
+  "workers": 8,
+  "database": {
+    "host": "db.example.com",
+    "username": "admin",
+    "password": "secure_password",
+    "database": "production_db",
+    "ssl_mode": "require"
+  },
+  "logging": {
+    "level": "WARNING",
+    "file": "/var/log/myapp.log",
+    "backup_count": "no"
+  }
+}

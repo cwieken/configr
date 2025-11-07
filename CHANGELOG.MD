@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2025-11-07
+
+### Fixed
+
+- Issue were nested dataclasses also needed `@config_class` annotation
+
 ## [0.3.0] - 2025-09-07
 
 ### Added

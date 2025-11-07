@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "py-configr"
-version = "0.3.0"
+version = "0.4.0"
 description = "A flexible, type-safe configuration management library for Python"
 readme = "README.md"
 authors = [{ name = "Corinna Wieken", email = "5384689+cwieken@users.noreply.github.com" }]
