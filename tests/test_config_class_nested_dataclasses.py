@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -14,7 +14,7 @@ def test_nested_dataclass_loading():
         name: str
         value: int
 
-    @config_class(file_name="nested_parent.json")
+    @dataclass
     class ParentConfig:
         title: str
         child: ChildConfig
@@ -53,12 +53,12 @@ def test_deeply_nested_dataclass_loading():
         id: int
         description: str
 
-    @config_class(file_name="nested_child.json")
+    @dataclass
     class ChildConfig:
         name: str
         grandchild: GrandchildConfig
 
-    @config_class(file_name="nested_parent.json")
+    @dataclass
     class ParentConfig:
         title: str
         child: ChildConfig
@@ -105,7 +105,7 @@ def test_nested_dataclass_with_missing_values():
         name: str
         value: int = 0  # Default value
 
-    @config_class(file_name="nested_parent.json")
+    @dataclass
     class ParentConfig:
         title: str
         child: ChildConfig
@@ -139,13 +139,13 @@ def test_nested_dataclass_with_missing_values():
 def test_nested_dataclass_with_null_value():
     """Test loading where a nested value is null."""
 
-    @dataclasses.dataclass
+    @dataclass
     class DefaultInitChildConfig:
         """A dataclass that can be initialized with no arguments."""
         name: str = "Default Name"
         value: int = 0
 
-    @config_class(file_name="nested_parent.json")
+    @dataclass
     class ParentConfig:
         title: str
         child: DefaultInitChildConfig
@@ -176,7 +176,7 @@ def test_nested_dataclass_with_null_value():
 def test_nested_dataclass_with_list():
     """Test loading configuration with a list of nested dataclasses."""
 
-    @config_class(file_name="item_config.json")
+    @dataclass
     class ItemConfig:
         id: int
         name: str
@@ -210,7 +210,7 @@ def test_nested_dataclass_with_list():
 def test_nested_dataclass_with_generic_types():
     """Test loading configs with nested dataclasses using generic types."""
 
-    @config_class(file_name="metadata_config.json")
+    @dataclass
     class MetadataConfig:
         tags: dict[str, str]
         settings: dict[str, Any]
