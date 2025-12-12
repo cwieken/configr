@@ -19,10 +19,11 @@ Typical usage:
 
     config = ConfigBase.load(DatabaseConfig)
 """
+
 import dataclasses
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Generic, TypeVar, get_args, get_origin
+from typing import Any, Generic, TypeVar, Union, get_args, get_origin
 
 from configr.exceptions import ConfigFileNotFoundError, ConfigLoadError
 from configr.loaders.loader_base import ConfigLoader, FileConfigLoader
@@ -31,7 +32,7 @@ from configr.loaders.loader_env_var import EnvVarConfigLoader
 from configr.loaders.loader_json import JSONConfigLoader
 from configr.loaders.loader_yaml import YAMLConfigLoader
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ConfigBase(Generic[T]):
@@ -76,8 +77,9 @@ class ConfigBase(Generic[T]):
         Returns:
             list[type[FileConfigLoader]]: A list of file-based configuration loaders.
         """
-        return [loader for loader in cls._loaders
-                if issubclass(loader, FileConfigLoader)]
+        return [
+            loader for loader in cls._loaders if issubclass(loader, FileConfigLoader)
+        ]
 
     @classmethod
     def add_loader(cls, loader: type[ConfigLoader]) -> None:
@@ -102,8 +104,12 @@ class ConfigBase(Generic[T]):
             cls._loaders.remove(loader)
 
     @classmethod
-    def load(cls, config_class: type[T], config_data: dict | None = None,
-             loader: type[ConfigLoader] | None = None) -> T:
+    def load(
+        cls,
+        config_class: type[T],
+        config_data: dict | None = None,
+        loader: type[ConfigLoader] | None = None,
+    ) -> T:
         """
         Load configuration from file and convert to the specified dataclass.
 
@@ -146,14 +152,15 @@ class ConfigBase(Generic[T]):
         config_data = cls.__load_nested_dataclasses(fields, filtered_data, loader)
 
         # Validate the types of the fields in the dataclass
-        loader.check_types(fields, filtered_data)
+        loader.check_types(fields, config_data)
 
         # Create an instance of the dataclass and return it
         return config_class(**config_data)
 
     @classmethod
-    def __filter_fields(cls, fields: dict[str, type],
-                        raw_config_data: dict[str, Any]) -> dict[str, Any]:
+    def __filter_fields(
+        cls, fields: dict[str, type], raw_config_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Filter the data to include only the fields defined in the dataclass.
 
@@ -182,7 +189,8 @@ class ConfigBase(Generic[T]):
 
     @classmethod
     def __load_config_data(
-            cls, config_class: type[T]) -> tuple[dict, type[ConfigLoader]]:
+        cls, config_class: type[T]
+    ) -> tuple[dict, type[ConfigLoader]]:
         """
         Load configuration data from file or loader and return as a dictionary.
 
@@ -197,13 +205,15 @@ class ConfigBase(Generic[T]):
         name = loader.get_config_name(config_class)
         config_data = loader.load(name, config_class)
         if not config_data:
-            raise ConfigLoadError(f"Failed to load configuration for {name} "
-                                  f"using {loader.__name__}")
+            raise ConfigLoadError(
+                f"Failed to load configuration for {name} using {loader.__name__}"
+            )
         return config_data, loader
 
     @classmethod
-    def __load_nested_dataclasses(cls, fields: dict[str, type], data: dict,
-                                  loader: type[ConfigLoader]) -> dict:
+    def __load_nested_dataclasses(
+        cls, fields: dict[str, type], data: dict, loader: type[ConfigLoader]
+    ) -> dict:
         """
         Recursively load nested dataclasses.
 
@@ -217,7 +227,10 @@ class ConfigBase(Generic[T]):
         """
         for key, value in data.items():
             field_type = fields[key]
-            if get_origin(field_type) is not None:
+            origin = get_origin(field_type)
+            # Only extract inner type for Union types (including Optional)
+            # For collections like list, tuple, set, dict - handle separately
+            if origin is Union:
                 if any(dataclasses.is_dataclass(arg) for arg in get_args(field_type)):
                     field_type = next(arg for arg in get_args(field_type))
             if dataclasses.is_dataclass(field_type):
@@ -233,7 +246,7 @@ class ConfigBase(Generic[T]):
                     except TypeError:
                         pass
             elif isinstance(value, Iterable):
-                origin_types = get_args(field_type)
+                origin_types = get_args(fields[key])
                 if origin_types and dataclasses.is_dataclass(origin_types[0]):
                     for i, value_elem in enumerate(value):
                         if isinstance(value_elem, dict):
@@ -265,16 +278,21 @@ class ConfigBase(Generic[T]):
         # raise ConfigFileNotFoundError
         if len(Path(config_class._config_file_name).suffixes) >= 1:
             raise ConfigFileNotFoundError(
-                f"Configuration file not found: {config_class._config_file_name}")
+                f"Configuration file not found: {config_class._config_file_name}"
+            )
 
         # Return the first non-file loader if no file loader is found
         # and not extension is specified
-        _non_file_loaders = [loader for loader in cls.get_available_loaders()
-                             if loader not in cls.get_available_file_loaders()]
+        _non_file_loaders = [
+            loader
+            for loader in cls.get_available_loaders()
+            if loader not in cls.get_available_file_loaders()
+        ]
 
         if len(_non_file_loaders) > 1:
-            raise IndexError(f"Found more than one non-file "
-                             f"loader: {_non_file_loaders}")
+            raise IndexError(
+                f"Found more than one non-file loader: {_non_file_loaders}"
+            )
 
         if len(_non_file_loaders) == 1:
             return _non_file_loaders[0]

@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2025-12-12
+
+### Fixed
+
+- Fixed issue with Union type handling in nested dataclasses to properly extract inner types
+- Fixed validation of nested dataclass fields to use correctly processed config data
+
+## [0.4.0] - 2025-11-07
+
+### Fixed
+
+- Fixed issue where nested dataclasses required additional type annotations to properly validate
+
 ## [0.3.0] - 2025-09-07
 
 ### Added

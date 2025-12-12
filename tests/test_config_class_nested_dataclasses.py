@@ -23,15 +23,12 @@ def test_nested_dataclass_loading():
     mock_loader = MagicMock()
     mock_loader.load.return_value = {
         "title": "Parent Title",
-        "child": {
-            "name": "Child Name",
-            "value": 42
-        }
+        "child": {"name": "Child Name", "value": 42},
     }
 
-    with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
+    with patch.object(ConfigBase, "_get_loader", return_value=mock_loader):
         # Mock the config file path to avoid file system dependency
-        ConfigBase.set_config_dir('mock_path')
+        ConfigBase.set_config_dir("mock_path")
 
         # Load the parent config
         config = ConfigBase.load(ParentConfig)
@@ -69,16 +66,13 @@ def test_deeply_nested_dataclass_loading():
         "title": "Parent Title",
         "child": {
             "name": "Child Name",
-            "grandchild": {
-                "id": 123,
-                "description": "Grandchild Description"
-            }
-        }
+            "grandchild": {"id": 123, "description": "Grandchild Description"},
+        },
     }
 
-    with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
+    with patch.object(ConfigBase, "_get_loader", return_value=mock_loader):
         # Mock the config file path to avoid file system dependency
-        ConfigBase.set_config_dir('mock_path')
+        ConfigBase.set_config_dir("mock_path")
 
         # Load the parent config
         config = ConfigBase.load(ParentConfig)
@@ -93,8 +87,7 @@ def test_deeply_nested_dataclass_loading():
         # Verify that the grandchild config was loaded correctly
         assert isinstance(config.child.grandchild, GrandchildConfig)
         assert config.child.grandchild.id == 123
-        assert config.child.grandchild.description == ("Grandchild "
-                                                       "Description")
+        assert config.child.grandchild.description == ("Grandchild Description")
 
 
 def test_nested_dataclass_with_missing_values():
@@ -117,12 +110,12 @@ def test_nested_dataclass_with_missing_values():
         "child": {
             "name": "Child Name"
             # Missing "value" field, should use default
-        }
+        },
     }
 
-    with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
+    with patch.object(ConfigBase, "_get_loader", return_value=mock_loader):
         # Mock the config file path to avoid file system dependency
-        ConfigBase.set_config_dir('mock_path')
+        ConfigBase.set_config_dir("mock_path")
 
         # Load the parent config
         config = ConfigBase.load(ParentConfig)
@@ -142,6 +135,7 @@ def test_nested_dataclass_with_null_value():
     @dataclass
     class DefaultInitChildConfig:
         """A dataclass that can be initialized with no arguments."""
+
         name: str = "Default Name"
         value: int = 0
 
@@ -154,12 +148,12 @@ def test_nested_dataclass_with_null_value():
     mock_loader = MagicMock()
     mock_loader.load.return_value = {
         "title": "Parent Title",
-        "child": None  # Null value for child
+        "child": None,  # Null value for child
     }
 
-    with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
+    with patch.object(ConfigBase, "_get_loader", return_value=mock_loader):
         # Mock the config file path to avoid file system dependency
-        ConfigBase.set_config_dir('mock_path')
+        ConfigBase.set_config_dir("mock_path")
 
         # Load the parent config
         config = ConfigBase.load(ParentConfig)
@@ -186,9 +180,6 @@ def test_nested_dataclass_with_list():
         title: str
         items: list[ItemConfig]
 
-    # This test should fail because the current implementation doesn't handle
-    # lists of dataclasses automatically. This test documents this limitation.
-
     # Mock the loader to return data with a list of items
     mock_loader = MagicMock()
     mock_loader.load.return_value = {
@@ -196,15 +187,25 @@ def test_nested_dataclass_with_list():
         "items": [
             {"id": 1, "name": "Item 1"},
             {"id": 2, "name": "Item 2"},
-            {"id": 3, "name": "Item 3"}
-        ]
+            {"id": 3, "name": "Item 3"},
+        ],
     }
 
-    with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
+    with patch.object(ConfigBase, "_get_loader", return_value=mock_loader):
         # Mock the config file path to avoid file system dependency
-        ConfigBase.set_config_dir('mock_path')
+        ConfigBase.set_config_dir("mock_path")
 
-        ConfigBase.load(CollectionConfig)
+        config = ConfigBase.load(CollectionConfig)
+
+        # Verify the collection config was loaded correctly
+        assert config.title == "My Collection"
+        assert len(config.items) == 3
+
+        # Verify that each item was converted to ItemConfig dataclass
+        for i, item in enumerate(config.items, start=1):
+            assert isinstance(item, ItemConfig)
+            assert item.id == i
+            assert item.name == f"Item {i}"
 
 
 def test_nested_dataclass_with_generic_types():
@@ -225,21 +226,14 @@ def test_nested_dataclass_with_generic_types():
     mock_loader.load.return_value = {
         "name": "My App",
         "metadata": {
-            "tags": {
-                "env": "production",
-                "region": "us-west"
-            },
-            "settings": {
-                "timeout": 30,
-                "retry": True,
-                "debug": False
-            }
-        }
+            "tags": {"env": "production", "region": "us-west"},
+            "settings": {"timeout": 30, "retry": True, "debug": False},
+        },
     }
 
-    with patch.object(ConfigBase, '_get_loader', return_value=mock_loader):
+    with patch.object(ConfigBase, "_get_loader", return_value=mock_loader):
         # Mock the config file path to avoid file system dependency
-        ConfigBase.set_config_dir('mock_path')
+        ConfigBase.set_config_dir("mock_path")
 
         # Load the config
         config = ConfigBase.load(AppConfig)
