@@ -104,12 +104,8 @@ class ConfigBase(Generic[T]):
             cls._loaders.remove(loader)
 
     @classmethod
-    def load(
-        cls,
-        config_class: type[T],
-        config_data: dict | None = None,
-        loader: type[ConfigLoader] | None = None,
-    ) -> T:
+    def load(cls, config_class: type[T], config_data: dict | None = None,
+             loader: type[ConfigLoader] | None = None) -> T:
         """
         Load configuration from file and convert to the specified dataclass.
 
@@ -152,6 +148,7 @@ class ConfigBase(Generic[T]):
         config_data = cls.__load_nested_dataclasses(fields, filtered_data, loader)
 
         # Validate the types of the fields in the dataclass
+        loader.check_types(fields, filtered_data)
         loader.check_types(fields, config_data)
 
         # Create an instance of the dataclass and return it
@@ -189,8 +186,7 @@ class ConfigBase(Generic[T]):
 
     @classmethod
     def __load_config_data(
-        cls, config_class: type[T]
-    ) -> tuple[dict, type[ConfigLoader]]:
+            cls, config_class: type[T]) -> tuple[dict, type[ConfigLoader]]:
         """
         Load configuration data from file or loader and return as a dictionary.
 
@@ -211,9 +207,8 @@ class ConfigBase(Generic[T]):
         return config_data, loader
 
     @classmethod
-    def __load_nested_dataclasses(
-        cls, fields: dict[str, type], data: dict, loader: type[ConfigLoader]
-    ) -> dict:
+    def __load_nested_dataclasses(cls, fields: dict[str, type], data: dict,
+                                  loader: type[ConfigLoader]) -> dict:
         """
         Recursively load nested dataclasses.
 

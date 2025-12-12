@@ -9,11 +9,14 @@ All notable changes to this project will be documented in this file.
 - Fixed issue with Union type handling in nested dataclasses to properly extract inner types
 - Fixed validation of nested dataclass fields to use correctly processed config data
 
+
 ## [0.4.0] - 2025-11-07
 
 ### Fixed
 
 - Fixed issue where nested dataclasses required additional type annotations to properly validate
+- Issue were nested dataclasses also needed `@config_class` annotation
+
 
 ## [0.3.0] - 2025-09-07
 
@@ -28,11 +31,13 @@ All notable changes to this project will be documented in this file.
 
 - Enhanced ConfigBase to automatically include the DotEnvConfigLoader
 
+
 ## [0.2.1] - 2025-09-07
 
 ### Fixed
 
 - Fixed issue where build package does not include loaders
+
 
 ## [0.2.0] - 2025-05-16
 
@@ -57,12 +62,14 @@ All notable changes to this project will be documented in this file.
 - Edge cases in configuration file discovery
 - Error messages for configuration validation failures
 
+
 ## [0.1.1] - 2025-04-18
 
 ### Fixed
 
 - Documentation improvements in code comments
 - Minor typo corrections
+
 
 ## [0.1.0] - 2025-04-18
 
